@@ -1,4 +1,4 @@
-openflow-openvswitch-scripts
-============================
+OFERTIE Scripts
+===============
 
-Scripts for configuring OpenFlow and/or Open VSwitch
+Scripts for configuring/managing various networks created for the OFERTIE project.
