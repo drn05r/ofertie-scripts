@@ -8,23 +8,23 @@
 #================================================
 
 # For client setup: the remote server to connect
-VPN_SERVER_IP="10.216.33.103"
+VPN_SERVER_IP="10.216.C.D"
 
 # Bridge details (server):
 BRIDGE_IFACE="eth2"
-BRIDGE_IP="192.168.0.10"
+BRIDGE_IP="192.168.0.32"
 BRIDGE_NETMASK="255.255.255.0"
 BRIDGE_BCAST="192.168.0.255"
 
-CLIENT_ADDRESS_RANGE="192.168.0.50 192.168.0.100"
+CLIENT_ADDRESS_RANGE="192.168.0.64 192.168.0.127"
 VPN_PROTOCOL="udp"
 
 # CA certficate values:
 KEY_COUNTRY="GB"
 KEY_PROVINCE="HAMPSHIRE"
 KEY_CITY="SOUTHAMPTON"
-KEY_ORG="OpenVPN-OFELIA-test"
-KEY_EMAIL="xyz@soton.ac.uk"
+KEY_ORG="OFERTIE"
+KEY_EMAIL="user@example.org"
 
 # for client key generation
 CLIENT="client1"
@@ -216,7 +216,21 @@ echo "Now you need to run client setup"
 
 
 
-
+elif [ "$1" = "clientconf" ]; then
+if [ ! -f "/etc/openvpn/easy-rsa/vars" ] ; then
+	echo "You must run this script in server mode before you can start creating additional client configurations.";
+	exit 1;
+fi
+echo "generating key for client"
+cd /etc/openvpn/easy-rsa
+source ./vars
+sh ./pkitool $CLIENT
+cd keys
+echo "packing up certificates for ${CLIENT}"
+echo "moving them to /tmp/openvpn/${CLIENT}.tar"
+mkdir -p /tmp/openvpn
+tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} ca.crt
+chmod 777 /tmp/openvpn/${CLIENT}.tar
 
 elif [ "$1" = "client" ]
 then
