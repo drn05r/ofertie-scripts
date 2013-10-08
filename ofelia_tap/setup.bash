@@ -166,7 +166,9 @@ cp server.crt server.key ca.crt dh1024.pem ta.key /etc/openvpn/
 echo "packing up certificates for ${CLIENT}"
 echo "moving them to /tmp/openvpn/${CLIENT}.tar"
 mkdir -p /tmp/openvpn
-tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} ca.crt
+cp ca.crt /tmp/openvpn/${CLIENT}-ca.crt
+tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT}-ca.crt
+rm /tmp/openvpn/${CLIENT}-ca.crt
 chmod 777 /tmp/openvpn/${CLIENT}.tar 
 
 
@@ -229,7 +231,9 @@ cd keys
 echo "packing up certificates for ${CLIENT}"
 echo "moving them to /tmp/openvpn/${CLIENT}.tar"
 mkdir -p /tmp/openvpn
-tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} ca.crt
+cp ca.crt /tmp/openvpn/${CLIENT}-ca.crt
+tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT}-ca.crt
+rm /tmp/openvpn/${CLIENT}-ca.crt
 chmod 777 /tmp/openvpn/${CLIENT}.tar
 
 elif [ "$1" = "client" ]
@@ -254,7 +258,7 @@ persist-tun
 ;http-proxy-retry # retry on connection failures
 ;http-proxy [proxy server] [proxy port #]
 
-ca /etc/openvpn/ca.crt
+ca /etc/openvpn/${CLIENT}-ca.crt
 cert /etc/openvpn/${CLIENT}.crt
 key /etc/openvpn/${CLIENT}.key
 ;tls-auth /etc/openvpn/ta.key 1
