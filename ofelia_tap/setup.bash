@@ -28,6 +28,8 @@ KEY_EMAIL="user@example.org"
 
 # for client key generation
 CLIENT="client1"
+# for creating a folder in /etc/openvpn/ on the client
+CLIENT_LOCAL="client1"
 
 # Source config file?
 if [ -f "./tap.conf" ]; then { source ./tap.conf; } fi
@@ -240,11 +242,18 @@ elif [ "$1" = "client" ]
 then
 
 echo "CLIENT SETUP"
-echo "installing /etc/openvpn/client.conf"
-cat << EOF > /etc/openvpn/client.conf
+if [ -d /etc/openvpn/${CLIENT_LOCAL} ]; then
+        echo "There are exists a client config with the name ${CLIENT_LOCAL}. Please change CLIENT_LOCAL in your configuration."
+        exit 1
+fi
+cd /etc/openvpn/
+mkdir -p ${CLIENT_LOCAL}
+cd ${CLIENT_LOCAL}
+echo "installing /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.conf"
+cat << EOF > ${CLIENT}.conf
 ##############################################
 # OpenVPN Ethernet bridge client config file
-# /etc/openvpn/client.conf
+# /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.conf
 ##############################################
 
 client
@@ -258,9 +267,9 @@ persist-tun
 ;http-proxy-retry # retry on connection failures
 ;http-proxy [proxy server] [proxy port #]
 
-ca /etc/openvpn/${CLIENT}-ca.crt
-cert /etc/openvpn/${CLIENT}.crt
-key /etc/openvpn/${CLIENT}.key
+ca /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}-ca.crt
+cert /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.crt
+key /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.key
 ;tls-auth /etc/openvpn/ta.key 1
 
 ns-cert-type server
@@ -274,11 +283,11 @@ EOF
 echo "Retreiving certs for client from server via scp to $VPN_SERVER_IP"
 echo -n "username:"
 read SCPUSERNAME
-scp $SCPUSERNAME@$VPN_SERVER_IP:/tmp/openvpn/${CLIENT}.tar /etc/openvpn/${CLIENT}.tar
 
-if [ $? -ne 0 ]; then { echo "ERROR: Unable to download $VPN_SERVER_IP:/etc/openvpn/$CLIENT.tar" ; exit 1; } fi
+scp $SCPUSERNAME@$VPN_SERVER_IP:/tmp/openvpn/${CLIENT}.tar .
 
-cd /etc/openvpn
+if [ $? -ne 0 ]; then { echo "ERROR: Unable to download ${VPN_SERVER_IP}:/etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.tar" ; exit 1; } fi
+
 tar xf ${CLIENT}.tar
 rm ${CLIENT}.tar
 
