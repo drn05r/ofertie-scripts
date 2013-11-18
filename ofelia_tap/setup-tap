@@ -12,24 +12,24 @@ VPN_SERVER_IP="10.216.C.D"
 
 # Bridge details (server):
 BRIDGE_IFACE="eth2"
-BRIDGE_IP="192.168.0.32"
+BRIDGE_IP="192.168.1.32"
 BRIDGE_NETMASK="255.255.255.0"
-BRIDGE_BCAST="192.168.0.255"
+BRIDGE_BCAST="192.168.1.255"
 
-CLIENT_ADDRESS_RANGE="192.168.0.64 192.168.0.127"
+CLIENT_ADDRESS_RANGE="192.168.1.64 192.168.1.127"
 VPN_PROTOCOL="udp"
 
 # CA certficate values:
 KEY_COUNTRY="GB"
-KEY_PROVINCE="HAMPSHIRE"
-KEY_CITY="SOUTHAMPTON"
-KEY_ORG="OFERTIE"
-KEY_EMAIL="user@example.org"
+KEY_PROVINCE="Hampshire"
+KEY_CITY="Southampton"
+KEY_ORG="OFERTIE-OpenVPN-OFELIA"
+KEY_EMAIL="changeme@example.org"
 
 # for client key generation
 CLIENT="client1"
 # for creating a folder in /etc/openvpn/ on the client
-CLIENT_LOCAL="client1"
+CLIENT_LOCAL=$CLIENT
 
 # Source config file?
 if [ -f "./tap.conf" ]; then { source ./tap.conf; } fi
@@ -167,11 +167,15 @@ cp server.crt server.key ca.crt dh1024.pem ta.key /etc/openvpn/
 
 echo "packing up certificates for ${CLIENT}"
 echo "moving them to /tmp/openvpn/${CLIENT}.tar"
-mkdir -p /tmp/openvpn
-cp ca.crt /tmp/openvpn/${CLIENT}-ca.crt
-tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT}-ca.crt
-rm /tmp/openvpn/${CLIENT}-ca.crt
-chmod 777 /tmp/openvpn/${CLIENT}.tar 
+mkdir -p /tmp/openvpn/${CLIENT_LOCAL}
+cp ca.crt /tmp/openvpn/${CLIENT_LOCAL}/${CLIENT}-ca.crt
+cp ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT_LOCAL}/
+currentdir=`pwd`
+cd /tmp/openvpn/
+tar cf ${CLIENT}.tar ${CLIENT_LOCAL}
+rm -r ${CLIENT_LOCAL}
+chmod 777 ${CLIENT}.tar
+cd ${currentdir}
 
 
 echo "installing /etc/openvpn/server.conf"
@@ -232,18 +236,22 @@ sh ./pkitool $CLIENT
 cd keys
 echo "packing up certificates for ${CLIENT}"
 echo "moving them to /tmp/openvpn/${CLIENT}.tar"
-mkdir -p /tmp/openvpn
-cp ca.crt /tmp/openvpn/${CLIENT}-ca.crt
-tar cf /tmp/openvpn/${CLIENT}.tar ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT}-ca.crt
-rm /tmp/openvpn/${CLIENT}-ca.crt
-chmod 777 /tmp/openvpn/${CLIENT}.tar
+mkdir -p /tmp/openvpn/${CLIENT_LOCAL}
+cp ca.crt /tmp/openvpn/${CLIENT_LOCAL}/${CLIENT}-ca.crt
+cp ${CLIENT}.{crt,csr,key} /tmp/openvpn/${CLIENT_LOCAL}/
+currentdir=`pwd`
+cd /tmp/openvpn/
+tar cf ${CLIENT}.tar ${CLIENT_LOCAL}
+rm -r ${CLIENT_LOCAL}
+chmod 777 ${CLIENT}.tar
+cd ${currentdir}
 
 elif [ "$1" = "client" ]
 then
 
 echo "CLIENT SETUP"
 if [ -d /etc/openvpn/${CLIENT_LOCAL} ]; then
-        echo "There are exists a client config with the name ${CLIENT_LOCAL}. Please change CLIENT_LOCAL in your configuration."
+        echo "There exists a client config with the name ${CLIENT_LOCAL}. Please change CLIENT_LOCAL in your configuration."
         exit 1
 fi
 cd /etc/openvpn/
@@ -284,16 +292,19 @@ echo "Retreiving certs for client from server via scp to $VPN_SERVER_IP"
 echo -n "username:"
 read SCPUSERNAME
 
-scp $SCPUSERNAME@$VPN_SERVER_IP:/tmp/openvpn/${CLIENT}.tar .
+scp $SCPUSERNAME@$VPN_SERVER_IP:/tmp/openvpn/${CLIENT}.tar /etc/openvpn/
 
-if [ $? -ne 0 ]; then { echo "ERROR: Unable to download ${VPN_SERVER_IP}:/etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.tar" ; exit 1; } fi
+if [ $? -ne 0 ]; then { echo "ERROR: Unable to download ${VPN_SERVER_IP}:/etc/openvpn/${CLIENT}.tar" ; exit 1; } fi
 
+cd /etc/openvpn/
 tar xf ${CLIENT}.tar
+
 rm ${CLIENT}.tar
 
 echo "CLIENT SETUP COMPLETE"
 echo "On server:# bridge-start ; service openvpn start"
-echo "On this client:$ sudo openvpn /etc/openvpn/client.conf"
+host_ip=`ifconfig eth0 | grep "inet addr" | awk 'BEGIN{FS="[ :]+"}{print $4}'`
+echo "On this client: $ sudo openvpn /etc/openvpn/${CLIENT_LOCAL}/${CLIENT}.conf"
 echo "And you're away"
 
 else
