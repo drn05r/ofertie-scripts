@@ -4,28 +4,12 @@ Topologies for testing OFERTIE network scenarios
 
 """
 
+import os
+import sys
 from mininet.topo import Topo
+from mininet.node import Node
 
-class Topo0( Topo ):
-    "Topology with 2 hosts and 1 switch connected end-to-end."
-
-    def __init__( self ):
-        "Creating Topology OFERTIE 0 (2 hosts, 1 switch)"
-
-        # Initialize topology
-        Topo.__init__( self )
-
-        # Add hosts and switches
-        firstHost = self.addHost( 'h1' )
-        secondHost = self.addHost( 'h2' )
-
-        firstSwitch = self.addSwitch( 's1' )
-
-	self.addLink( firstHost, firstSwitch )
-        self.addLink( firstSwitch, secondHost )
-
-
-class Topo1( Topo ):
+class BasicIPv6( Topo ):
     "Topology with 2 hosts and 2 switches connected end-to-end."
 
     def __init__( self ):
@@ -42,13 +26,13 @@ class Topo1( Topo ):
         secondSwitch = self.addSwitch( 's2' )
 
         # Add links
-        self.addLink( firstHost, firstSwitch )
-        self.addLink( firstSwitch, secondSwitch )
-        self.addLink( secondSwitch, secondHost )
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+        self.addLink( firstSwitch, secondSwitch, 2, 1 )
+        self.addLink( secondSwitch, secondHost, 2, 1 )
 
 
-class Topo2( Topo ):
-    "Topology with 2 hosts and 3 switches. Host 1 connected via two switches to third switch that is connected to host 2."
+class TopoX( Topo ):
+    "Topology with 2 hosts and 3 switches. Host 1 is connected to two switches which is connected to a third switch which is also connected to the second host"
 
     def __init__( self ):
         "Creating Topology OFERTIE 2 (2 hosts, 3 switches)"
@@ -65,18 +49,42 @@ class Topo2( Topo ):
         thirdSwitch = self.addSwitch( 's3' )
 
         # Add links
-        self.addLink( firstHost, firstSwitch )
-        self.addLink( firstHost, secondSwitch )
-        self.addLink( firstSwitch, thirdSwitch )
-        self.addLink( secondSwitch, thirdSwitch )
-        self.addLink( thirdSwitch, secondHost )
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+        self.addLink( firstHost, secondSwitch, 2, 1 )
+        self.addLink( firstSwitch, thirdSwitch, 2, 1 )
+        self.addLink( secondSwitch, thirdSwitch, 2, 2 )
+        self.addLink( thirdSwitch, secondHost, 3, 1 )
 
 
-class Topo3( Topo ):
-    "Topology with 3 hosts and 5 switches completely interconnected."
+class BasicIPv6Multicast( Topo):
+    "Topology with 4 hosts and 2 switches.  Host 1 and 2 are connected to the first switch, which is also connected to the second swutch which connects the remaining two hosts"
+    def __init__( self ):
+        "Creating Topology OFERTIE 4 (4 hosts, 2 switches)"
+
+        # Initialize topology
+        Topo.__init__( self )
+
+        # Add hosts and switches
+        firstHost = self.addHost( 'h1' )
+        secondHost = self.addHost( 'h2' )
+        thirdHost = self.addHost( 'h3' )
+	fourthHost = self.addHots( 'h4' )
+	
+	firstSwitch = self.addSwitch( 's1' )
+        secondSwitch = self.addSwitch( 's2' )
+
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+        self.addLink( secondHost, firstSwitch, 1, 2 )
+        self.addLink( firstSwitch, secondSwitch, 3, 1 )
+        self.addLink( secondSwitch, thirdHost, 2, 1 )
+        self.addLink( secondSwitch, fourthHost, 3, 1 )
+	
+
+class ComplexIPv6( Topo ):
+    "Topology with 3 hosts and 4 switches.  The first host connects to the first and second switches.  The third hosts connects to the second and third switches both of which connect to the second host.  The first switch connects to the fourth switch which then connects to the second host"
 
     def __init__( self ):
-        "Creating Topology OFERTIE 3 (3 hosts, 5 switches)"
+        "Creating Topology OFERTIE 4 (3 hosts, 4 switches)"
 
         # Initialize topology
         Topo.__init__( self )
@@ -90,25 +98,18 @@ class Topo3( Topo ):
         secondSwitch = self.addSwitch( 's2' )
         thirdSwitch = self.addSwitch( 's3' )
         fourthSwitch = self.addSwitch( 's4' )
-        fifthSwitch = self.addSwitch( 's5' )
 
         # Add links
-        self.addLink( firstHost, firstSwitch )
-        self.addLink( firstHost, thirdSwitch )
-        self.addLink( secondHost, firstSwitch )
-        self.addLink( secondHost, secondSwitch )
-        self.addLink( firstSwitch, secondSwitch )
-#       self.addLink( firstSwitch, thirdSwitch )
-#       self.addLink( firstSwitch, fourthSwitch )
-#       self.addLink( firstSwitch, fifthSwitch )
-        self.addLink( secondSwitch, thirdSwitch )
-#       self.addLink( secondSwitch, fourthSwitch )
-#       self.addLink( secondSwitch, fifthSwitch )
-        self.addLink( thirdSwitch, fourthSwitch )
-#       self.addLink( thirdSwitch, fifthSwitch )
-        self.addLink( fourthSwitch, fifthSwitch )
-        self.addLink( fourthSwitch, thirdHost )
-        self.addLink( fifthSwitch, thirdHost )
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+	self.addLink( firstHost, secondSwitch, 2, 1 )
+	self.addLink( firstSwitch, fourthSwitch, 2, 1 )
+        self.addLink( thirdHost, secondSwitch, 1, 2 )
+        self.addLink( thirdHost, thirdSwitch, 2, 1 )
+	self.addLink( secondSwitch, fourthSwitch, 3, 2)
+	self.addLink( secondSwitch, secondHost, 4, 1)
+	self.addLink( thirdSwitch, secondHost, 2, 2)
+	self.addLink( fourthSwitch, secondHost, 3, 3)
 
-topos = { 'topo0': ( lambda: Topo0() ), 'topo1': ( lambda: Topo1() ), 'topo2': ( lambda: Topo2() ), 'topo3': ( lambda: Topo3() ) }
+
+topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: basicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ) }
 
