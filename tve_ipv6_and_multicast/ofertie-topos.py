@@ -31,31 +31,6 @@ class BasicIPv6( Topo ):
         self.addLink( secondSwitch, secondHost, 2, 1 )
 
 
-class TopoX( Topo ):
-    "Topology with 2 hosts and 3 switches. Host 1 is connected to two switches which is connected to a third switch which is also connected to the second host"
-
-    def __init__( self ):
-        "Creating Topology OFERTIE 2 (2 hosts, 3 switches)"
-
-        # Initialize topology
-        Topo.__init__( self )
-
-        # Add hosts and switches
-        firstHost = self.addHost( 'h1' )
-        secondHost = self.addHost( 'h2' )
-
-        firstSwitch = self.addSwitch( 's1' )
-        secondSwitch = self.addSwitch( 's2' )
-        thirdSwitch = self.addSwitch( 's3' )
-
-        # Add links
-        self.addLink( firstHost, firstSwitch, 1, 1 )
-        self.addLink( firstHost, secondSwitch, 2, 1 )
-        self.addLink( firstSwitch, thirdSwitch, 2, 1 )
-        self.addLink( secondSwitch, thirdSwitch, 2, 2 )
-        self.addLink( thirdSwitch, secondHost, 3, 1 )
-
-
 class BasicIPv6Multicast( Topo):
     "Topology with 4 hosts and 2 switches.  Host 1 and 2 are connected to the first switch, which is also connected to the second swutch which connects the remaining two hosts"
     def __init__( self ):
@@ -68,7 +43,7 @@ class BasicIPv6Multicast( Topo):
         firstHost = self.addHost( 'h1' )
         secondHost = self.addHost( 'h2' )
         thirdHost = self.addHost( 'h3' )
-	fourthHost = self.addHots( 'h4' )
+	fourthHost = self.addHost( 'h4' )
 	
 	firstSwitch = self.addSwitch( 's1' )
         secondSwitch = self.addSwitch( 's2' )
@@ -105,11 +80,36 @@ class ComplexIPv6( Topo ):
 	self.addLink( firstSwitch, fourthSwitch, 2, 1 )
         self.addLink( thirdHost, secondSwitch, 1, 2 )
         self.addLink( thirdHost, thirdSwitch, 2, 1 )
-	self.addLink( secondSwitch, fourthSwitch, 3, 2)
+# self.addLink( secondSwitch, fourthSwitch, 3, 2)
 	self.addLink( secondSwitch, secondHost, 4, 1)
 	self.addLink( thirdSwitch, secondHost, 2, 2)
 	self.addLink( fourthSwitch, secondHost, 3, 3)
 
+class Loopback( Topo ):
+    "Loopback topology"
 
-topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: basicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ) }
+    def __init__( self ):
+        "Creating Loopback topology (3 hosts, 3 switches)"
+
+        # Initialize topology
+        Topo.__init__( self )
+
+        # Add hosts and switches
+        firstHost = self.addHost( 'h1' )
+        secondHost = self.addHost( 'h2' )
+        thirdHost = self.addHost( 'h3' )
+
+	firstSwitch = self.addSwitch( 's1' )
+	secondSwitch = self.addSwitch( 's2' )
+	thirdSwitch = self.addSwitch( 's3' )
+	
+	self.addLink( firstHost, firstSwitch, 1, 1 )
+	self.addLink( firstSwitch, secondHost, 2, 1 )
+	self.addLink( secondHost, secondSwitch, 2, 1 )
+	self.addLink( secondSwitch, thirdHost, 2, 1 )
+	self.addLink( thirdHost, thirdSwitch, 2, 1 )
+	self.addLink( thirdSwitch, firstHost, 2, 2 )
+
+
+topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'loopback': ( lambda: Loopback() ) }
 
