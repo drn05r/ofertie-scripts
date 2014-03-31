@@ -17,7 +17,7 @@ class BasicIPv6Tests( unittest.TestCase ):
     output_type = 'machine'
     output_destination = 'file'
 
-    def nottest1( self ):
+    def test1( self ):
         print >> sys.stderr, "Test 1: Sanity test that IPv6 and OpenFlow controller are working"
         network = Ofertie.setupNetwork( 'basicIPv6' )
 
@@ -49,11 +49,11 @@ class BasicIPv6Tests( unittest.TestCase ):
         network = Ofertie.setupNetwork( 'basicIPv6' )
         iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
 
-	json_data = open('tests/basic_ipv6/test2a.json')
+	json_data = open('tests/basic_ipv6/test2.json')
 	tests = json.load(json_data)
 	random.shuffle(tests)
 
-	json_data = open('ofcommands/basic_ipv6/new.json')
+	json_data = open('ofcommands/basic_ipv6/general.json')
         ofcommands_list = json.load(json_data)
 
 	results_folder = "results/basic_ipv6/test2" 
@@ -63,7 +63,7 @@ class BasicIPv6Tests( unittest.TestCase ):
         Ofertie.killProcess( network, 'h2', iperf_pid )
         Ofertie.finished( network )
 
-    def nottest3( self ):
+    def test3( self ):
 	print >> sys.stderr, "Test 3: Test to see how maximum segment size behave on IPv4 and IPv6 pre and post OpenFlow modifications"
         network = Ofertie.setupNetwork( 'basicIPv6' )
 	iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
