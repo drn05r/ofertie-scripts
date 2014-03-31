@@ -11,6 +11,8 @@ from mininet.util import quietRun
 class Ofertie():
 
     prompt = 'mininet>'
+    startup_sleep = 10
+    rule_change_sleep = 5
 
     @staticmethod
     def getToposFilePath():
@@ -20,13 +22,19 @@ class Ofertie():
         return topofile
 
     @staticmethod
+    def setupNetwork( topo ):
+        network = Ofertie.createShell( topo )
+        Ofertie.configureNetwork( network, topo )
+        return network
+
+    @staticmethod
     def createShell( topo ):
-        print "Creating Mininet shell for "+topo
+        print >> sys.stderr, "Creating Mininet shell for "+topo
         topofile = Ofertie.getToposFilePath()
         p = pexpect.spawn( 'mn --custom %s --topo %s --mac --switch user --controller remote' % ( topofile, topo ) )
         p.expect( Ofertie.prompt )
-        print "Sleeping for 7 seconds to allow the OpenFlow controller to learn the network"
-        sleep(7)
+        print >> sys.stderr, "Sleeping for " + str(Ofertie.startup_sleep) + " seconds to allow the OpenFlow controller to learn the network"
+        sleep(Ofertie.startup_sleep)
         return p
 
     @staticmethod
@@ -37,7 +45,7 @@ class Ofertie():
 
     @staticmethod
     def configureNetwork( p, topo ):
-        print "Setting up "+topo+" network topology"
+        print >> sys.stderr, "Setting up "+topo+" network topology"
         if topo == 'basicIPv6':
             Ofertie.expectline( p, 'h1 ifconfig h1-eth1 add fd10:0:0::1/48 up' )
             Ofertie.expectline( p, 'h2 ifconfig h2-eth1 add fd10:0:0::2/48 up' )
@@ -99,11 +107,11 @@ class Ofertie():
 	return results
 
     @staticmethod
-    def doPing( p, source, dest, count=10, args='' ):
+    def doPing( p, source, dest, args='', count=10 ):
       return Ofertie.doPingGeneric( p, 'ping', source, dest, count, args )
 
     @staticmethod
-    def doPing6( p, source, dest, count=10, args='' ):
+    def doPing6( p, source, dest, args='', count=10 ):
       return Ofertie.doPingGeneric( p, 'ping6', source, dest, count, args )
 
     @staticmethod
@@ -132,12 +140,25 @@ class Ofertie():
           results.rtt_dev = float(rtt[3])
         return results
 
+    @staticmethod 
+    def applyDpctl( p, switch, command_type, action, args ):
+      command = switch + " dpctl unix:/tmp/" + switch + " " + command_type + " cmd=" + action + "," + args
+#      print >> sys.stderr, "========================================"
+      print >> sys.stderr, "COMMAND: " + command 
+#      print >> sys.stderr, "========================================"
+      p.sendline( command )
+      p.expect( Ofertie.prompt )
+#      print >> sys.stderr, p.before
+
     @staticmethod
     def doDpctl( p, switch, ofcommand, args ):
       command = switch + " dpctl unix:/tmp/" + switch + " " + ofcommand + " " + args
       command = command.strip()
-      lines = Ofertie.expectline( p, command )
-      print lines[-2]
+      print >> sys.stderr, "COMMAND: " + command
+    # lines = Ofertie.expectline( p, command )
+      p.sendline( command )
+      p.expect( Ofertie.prompt )
+    #  print >> sys.stderr, p.before
     
     @staticmethod
     def getNewTempFile( directory ):
@@ -158,7 +179,7 @@ class Ofertie():
 
     @staticmethod
     def doIperf3Debug( p, host, connect_to, args="", port=5001 ):
-      command = host + " iperf3 -i 0 -J -c " + connect_to + " -p " + str(port) + " " + args
+      command = host + " iperf3 -i 0 -t 10 -J -c " + connect_to + " -p " + str(port) + " " + args
       command = command.strip()
       lines = Ofertie.expectline( p, command )
       for line in lines:
@@ -166,6 +187,7 @@ class Ofertie():
       
     @staticmethod
     def doIperf3Server( p, host,args="", port=5001 ):
+      print >> sys.stderr, "Starting iperf3 server on ROIA provider"
       command = host + " iperf3 -sD -p " + str(port) + " " + args
       command = command.strip()
       lines = Ofertie.expectline( p, command )
@@ -177,21 +199,19 @@ class Ofertie():
       Ofertie.expectline( p, command )
 
     @staticmethod
-    def getIperf3Results( filename, result_types = ["bandwidth", "throughput"] ):
+    def getIperf3Results( filename, result_types = ["bandwidth", "throughput", "cpu_usage"] ):
       with open(filename, 'r') as filehandle:
         try:
           jsondata = json.load(filehandle)
         except:
           message = "error - No valid JSON results file generated for this test at " + filename
-          print message
           return {'error': message}
       if 'error' in jsondata:
-        print jsondata['error'] 
-        return jsondata['error']
-      results = {}
+        return jsondata
+      results = {'error': ''}
       udp = 0
       if 'bandwidth' in result_types:
-        results['bandwidth'] = {}
+        results['bandwidth'] = 0
         if len(jsondata['end']['streams']) < 2:
           if 'udp' in jsondata['end']['streams'][0]:
             results['bandwidth'] = jsondata['end']['streams'][0]['udp']['bits_per_second'] / 1000000
@@ -199,9 +219,9 @@ class Ofertie():
             results['bandwidth'] = jsondata['end']['streams'][0]['receiver']['bits_per_second'] / 1000000
         else:
           if 'udp' in jsondata['end']['streams'][0]: 
-            results['bandwidth'] = jsondata['end']['streams']['sum']['bits_per_second'] / 1000000
+            results['bandwidth'] = jsondata['end']['sum']['bits_per_second'] / 1000000
           else:
-            results['bandwidth'] = jsondata['end']['streams']['sum_received']['bits_per_second'] / 1000000
+            results['bandwidth'] = jsondata['end']['sum_received']['bits_per_second'] / 1000000
       if 'throughput' in result_types:
         results['throughput'] = {}
         udp = 0
@@ -214,8 +234,9 @@ class Ofertie():
             results['throughput']['lost_percent'] = jsondata['end']['streams'][0]['udp']['lost_percent']
             results['throughput']['jitter'] = jsondata['end']['streams'][0]['udp']['jitter_ms']
           else:
+            sent_bytes = jsondata['end']['streams'][0]['sender']['bytes']
             results['throughput']['megabytes'] = jsondata['end']['streams'][0]['sender']['bytes'] / 1000000
-            received_bytes = jsondata['end']['streams'][0]['receiver']['bytes'] / 1000000
+            received_bytes = jsondata['end']['streams'][0]['receiver']['bytes']
             if 'retransmits' in jsondata['end']['streams'][0]['sender']:
               results['throughput']['retransmits'] = jsondata['end']['streams'][0]['sender']['retransmits'] 
         else:
@@ -227,17 +248,79 @@ class Ofertie():
             results['throughput']['lost_percent'] = jsondata['end']['sum']['lost_percent']
             results['throughput']['jitter'] = jsondata['end']['sum']['jitter_ms']
           else:
-            results['throughput']['megabytes'] = jsondata['end']['streams']['sum_sent']['bytes'] / 1000000
-            received_bytes = jsondata['end']['streams']['sum_received']['bytes'] / 1000000	
-            if 'retransmits' in jsondata['end']['streams']['sum_sent']:
-              results['throughput']['retransmits'] = jsondata['end']['streams']['sum_sent']['retransmits']
+            sent_bytes = jsondata['end']['sum_sent']['bytes']
+            results['throughput']['megabytes'] = jsondata['end']['sum_sent']['bytes'] / 1000000
+            received_bytes = jsondata['end']['sum_received']['bytes'] / 1000000	
+            if 'retransmits' in jsondata['end']['sum_sent']:
+              results['throughput']['retransmits'] = jsondata['end']['sum_sent']['retransmits']
         if udp == 0:
-          results['throughput']['lost_megabytes'] = results['throughput']['megabytes'] - received_bytes
-          results['throughput']['lost_percent'] = results['throughput']['lost_megabytes'] / results['throughput']['megabytes'] * 100
+          results['throughput']['lost_megabytes'] = ( sent_bytes - received_bytes ) / 1000000
+          results['throughput']['lost_percent'] = ( sent_bytes - received_bytes ) / sent_bytes * 100
       if 'cpu_usage' in result_types:
         results['cpu_usage'] = jsondata['end']['cpu_utilization_percent']
       return results
-   
+
+    @staticmethod
+    def printResults(output_type, output_destination, test, results):
+      if output_type == "human":
+         Ofertie.printResultsHumanReadable(test, results, output_destination)
+      else:
+         Ofertie.printResultsMachineReadable(test, results, output_destination)
+
+    @staticmethod
+    def printResultsHumanReadable(test, results, output_destination):
+      print >> output_destination, "Tested: " + test
+      print >> output_destination, "  Data rate: " + str(results['bandwidth']) + "Mb/s"
+      print >> output_destination, "  Data lost: " + str(results['throughput']['lost_percent']) + "%"
+      if 'retransmits' in results['throughput']:
+          print >> output_destination, "  Data restransmits: " + str(results['throughput']['retransmits'])
+      else:
+          print >> output_destination, "  Data jitter: " + str(results['throughput']['jitter']) + "ms" 
+      print >> output_destination, "  Host total CPU usage: " + str(results['cpu_usage']['host_total']) + "%"
+      print >> output_destination, "  Remote total CPU usage: " + str(results['cpu_usage']['remote_total']) + "%"
+
+    @staticmethod
+    def printResultsMachineReadable(test, results, output_destination):
+      if 'retransmits' in results['throughput']:
+        print >> output_destination, '"' + test + '",' + str(results['bandwidth']) + ',' + str(results['throughput']['lost_percent']) + ',' + str(results['throughput']['retransmits']) + ',' + str(results['cpu_usage']['host_total']) + ',' + str(results['cpu_usage']['remote_total'])
+      else:
+        print >> output_destination, '"' + test + '",' + str(results['bandwidth']) + ',' + str(results['throughput']['lost_percent']) + ',' + str(results['throughput']['jitter']) + ',' + str(results['cpu_usage']['host_total']) + ',' + str(results['cpu_usage']['remote_total'])
+
+    @staticmethod
+    def runTestSet(p, tests, tester, output_destination, set_name="Baseline"):
+      if tester.output_type == "human":
+        print >> output_destination, set_name
+      else:
+        print >> output_destination, "\"" + set_name + "\""
+      for test in tests:
+        print >> sys.stderr, "Testing: "+ test['name']
+        filename = Ofertie.doIperf3(p, test['host'], test['destination'], test['arguments'])
+	results = Ofertie.getIperf3Results(filename)
+        tester.assertEqual(results['error'], "", results['error'])
+	Ofertie.printResults(tester.output_type, output_destination, test['name'], results) 
+
+    @staticmethod
+    def runTestSets(p, tests, ofcommands_list, tester, results_folder = "/tmp/"):
+      if tester.output_destination != "sys.stdout":
+        output_destination = open(results_folder + "/" + uuid.uuid4().hex + ".csv" , 'w')
+      else:
+        output_destination = tester.output_destination
+      Ofertie.runTestSet( p, tests, tester, output_destination )
+      last_ofcommands = {}
+      for ofcommands in ofcommands_list:
+        if len(last_ofcommands) > 0 and len(last_ofcommands['commands']) > 0:
+          print >> sys.stderr, "Removing OpenFlow commands for: " + last_ofcommands['name']
+          for ofcommands in last_ofcommands['commands']:
+            Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'del', ofcommand['arguments'])
+        print >> sys.stderr, "Applying OpenFlow commands for: " + ofcommands['name']
+        for ofcommand in ofcommands['commands']:
+          Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
+        sleep(Ofertie.rule_change_sleep)
+        print >> sys.stderr, "Sleeping for " + str(Ofertie.rule_change_sleep) + " seconds to ensure OpenFlow commands have been applied."
+        Ofertie.runTestSet( p, tests, tester, output_destination, ofcommands['name'] )
+        last_ofcommand = ofcommands
+  
+ 
     @staticmethod
     def getPid( p, host, cmdline ):
       command = host + " ps aux | grep \"" + cmdline + "\" | grep -v grep | tail -n 1 | awk 'BEGIN{FS=\"[\t ]+\"}{print $2}'" 
@@ -246,7 +329,7 @@ class Ofertie():
 
     @staticmethod 
     def finished( p ):
-       print "Finished with Mininet shell"
+       print >> sys.stderr, "Finished with Mininet shell"
        p.sendline( 'exit' )
        p.wait()
 

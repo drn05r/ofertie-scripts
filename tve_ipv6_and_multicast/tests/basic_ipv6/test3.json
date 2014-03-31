@@ -1,0 +1,74 @@
+[
+	{
+		"name":"IPv4 TCP from a ROIA player MSS = 0256",
+		"host":"h1",
+		"destination":"10.0.0.2",
+		"arguments":"-4 -M 256"
+	},
+	{
+                "name":"IPv4 TCP from a ROIA player MSS = 0512",
+                "host":"h1",
+                "destination":"10.0.0.2",
+                "arguments":"-4 -M 512"
+        },
+	{
+                "name":"IPv4 TCP from a ROIA player MSS = 1024",
+                "host":"h1",
+                "destination":"10.0.0.2",
+                "arguments":"-4 -M 1024"
+        },
+	{
+                "name":"IPv4 TCP from a ROIA player MSS = 2048",
+                "host":"h1",
+                "destination":"10.0.0.2",
+                "arguments":"-4 -M 2048"
+        },
+	{
+                "name":"IPv4 TCP from a ROIA player MSS = 4096",
+                "host":"h1",
+                "destination":"10.0.0.2",
+                "arguments":"-4 -M 4096"
+        },
+	{
+                "name":"IPv4 TCP from a ROIA player MSS = 8192",
+                "host":"h1",
+                "destination":"10.0.0.2",
+                "arguments":"-4 -M 8192"
+        },
+	{
+                "name":"IPv6 TCP from a ROIA player MSS = 0256",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 256"
+        },
+        {
+                "name":"IPv6 TCP from a ROIA player MSS = 0512",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 512"
+        },
+        {
+                "name":"IPv6 TCP from a ROIA player MSS = 1024",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 1024"
+        },
+        {
+                "name":"IPv6 TCP from a ROIA player MSS = 2068",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 2068"
+        },
+        {
+                "name":"IPv6 TCP from a ROIA player MSS = 4096",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 4096"
+        },
+        {
+                "name":"IPv6 TCP from a ROIA player MSS = 8192",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -M 8192"
+        }
+]

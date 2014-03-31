@@ -6,90 +6,81 @@ import os
 import re
 import sys
 import json
+import random
+import uuid
 from ofertieutils import Ofertie
 from time import sleep
 from mininet.util import quietRun
 
-class IPv6Tests( unittest.TestCase ):
+class BasicIPv6Tests( unittest.TestCase ):
 
-    network = '' 
+    output_type = 'machine'
+    output_destination = 'file'
 
     def nottest1( self ):
-        print "Test 1: Sanity test that IPv6 and OpenFlow controller are working"
-        network = Ofertie.createShell( 'basicIPv6' )
-        Ofertie.configureNetwork( network, 'basicIPv6' )
-	ping = Ofertie.doPing( network, 'h1', 'h2' )
-        self.assertGreater( ping.pkts_recv,  0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> h2' )
-        print "SUCCESS: Received " + str(ping.pkts_recv) + " packet(s) for ping h1 -> h2"
-        ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:0::2' )
+        print >> sys.stderr, "Test 1: Sanity test that IPv6 and OpenFlow controller are working"
+        network = Ofertie.setupNetwork( 'basicIPv6' )
+
+	ping = Ofertie.doPing( network, 'h1', '10.0.0.2', '-s 8186' )
+        self.assertGreater( ping.pkts_recv,  0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> 10.0.0.2' )
+        print >> sys.stderr, "SUCCESS: Received " + str(ping.pkts_recv) + " packet(s) for ping h1 -> 10.0.0.2"
+        ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:0::2', '-s 8186' )
         self.assertGreater( ping6.pkts_recv, 0, 'Received ' + str(ping6.pkts_recv) + ' packet(s) for ping6 h1 -> fd10:0:0::2' )
-        print "SUCCESS: Received " + str(ping6.pkts_recv) + " packet(s) for ping6 h1 -> fd10:0:0::2"
+        print >> sys.stderr, "SUCCESS: Received " + str(ping6.pkts_recv) + " packet(s) for ping6 h1 -> fd10:0:0::2"
+
+	print >> sys.stderr, "Modifying flow for switch s1 to significantly rate limit IPv6 packets."
         Ofertie.doDpctl( network, 's1', 'meter-mod', 'cmd=add,flags=1,meter=1 drop:rate=20' )
-        Ofertie.doDpctl( network, 's1', 'flow-mod', 'table=0,cmd=add eth_type=0x86dd meter:1 apply:output=2' )
-        print "Modified flow for switch s1 to significantly rate limit IPv6 packets."
-        sleep(5)
-        ping = Ofertie.doPing( network, 'h1', 'h2' )
-        self.assertGreater( ping.pkts_recv, 0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> h2' )
-        print "SUCCESS: Received " + str(ping.pkts_recv) + " packet(s) for ping h1 -> h2"
-        ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:0::2' )
-        self.assertEqual( ping6.pkts_recv, 0, 'Received ' + str(ping6.pkts_recv) + ' packet(s) for ping6 h1 -> fd10:0:0::2' )
-        print "SUCCESS: Received " + str(ping6.pkts_recv) + " packet(s) for ping6 h1 -> fd10:0:0::2"
+	Ofertie.doDpctl( network, 's1', 'flow-mod', 'cmd=add,table=0 in_port=2,eth_type=0x86dd meter:1 apply:output=1' )
+        Ofertie.doDpctl( network, 's1', 'flow-mod', 'cmd=add,table=0 in_port=1,eth_type=0x86dd meter:1 apply:output=2' )	
+        print >> sys.stderr, "Modified flow for switch s1 to significantly rate limit IPv6 packets.  Sleeping for " + str(Ofertie.rule_change_sleep) + " seconds to ensure changes are applied."
+        sleep(Ofertie.rule_change_sleep)
+
+        ping = Ofertie.doPing( network, 'h1', '10.0.0.2', '-s 8186' )
+        self.assertGreater( ping.pkts_recv, 0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> 10.0.0.2' )
+        print >> sys.stderr, "SUCCESS: Received " + str(ping.pkts_recv) + " packet(s) for ping h1 -> 10.0.0.2"
+        ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:0::2', '-s 8186' )
+        self.assertLess( ping6.pkts_recv, 3, 'Received ' + str(ping6.pkts_recv) + ' packet(s) for ping6 h1 -> fd10:0:0::2' )
+        print >> sys.stderr, "SUCCESS: Received " + str(ping6.pkts_recv) + " packet(s) for ping6 h1 -> fd10:0:0::2"
+
         Ofertie.finished( network )
 
-    def test2( self ):
-	print "Test 2: Various types of IPv4 and IPv6 traffic pre and post flow mods"
-	network = Ofertie.createShell( 'basicIPv6' )
-        Ofertie.configureNetwork( network, 'basicIPv6' )
-	print "Starting iperf3 server on ROIA provider"
+    def test2( self ): 
+        print >> sys.stderr, "Test 2: Various types of IPv4 and IPv6 traffic pre and post flow mods"
+        network = Ofertie.setupNetwork( 'basicIPv6' )
+        iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
+
+	json_data = open('tests/basic_ipv6/test2a.json')
+	tests = json.load(json_data)
+	random.shuffle(tests)
+
+	json_data = open('ofcommands/basic_ipv6/new.json')
+        ofcommands_list = json.load(json_data)
+
+	results_folder = "results/basic_ipv6/test2" 
+
+	Ofertie.runTestSets( network, tests, ofcommands_list, self, results_folder )
+        
+        Ofertie.killProcess( network, 'h2', iperf_pid )
+        Ofertie.finished( network )
+
+    def nottest3( self ):
+	print >> sys.stderr, "Test 3: Test to see how maximum segment size behave on IPv4 and IPv6 pre and post OpenFlow modifications"
+        network = Ofertie.setupNetwork( 'basicIPv6' )
 	iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
 
-        print "Testing IPv4 TCP from ROIA player"
-        filename = Ofertie.doIperf3( network, 'h1', '10.0.0.2', '-4' )
-        results = Ofertie.getIperf3Results(filename)
-        self.assertFalse('error' in results)
-        print "  Data rate: " + str(results['bandwidth']) + "Mb/s"
-        print "  Data loss: " + str(results['throughput']['lost_percent']) + "%"
-	print "  Data restransmits: " + str(results['throughput']['retransmits'])
+	json_data = open('tests/basic_ipv6/test3.json')
+        tests = json.load(json_data)
+        random.shuffle(tests)
 
-#	print "Testing IPv4 TCP from ROIA player"
-#        Ofertie.doIperf3Debug( network, 'h1', '10.0.0.2', '-t 10 -P 5' )
-#	sleep(5)
-#	Ofertie.finished( network )
-#	sleep(5)
+        json_data = open('ofcommands/basic_ipv6/general.json')
+        ofcommands_list = json.load(json_data)
+	
+        results_folder = "results/basic_ipv6/test3"
 
-        print "Testing IPv6 TCP from ROIA player"
-	filename = Ofertie.doIperf3( network, 'h1', 'fd10:0:0::2', '-6' )
-        results = Ofertie.getIperf3Results(filename)
-	self.assertFalse('error' in results)
-        print "  Data rate: " + str(results['bandwidth']) + "Mb/s"
-        print "  Data lost: " + str(results['throughput']['lost_percent']) + "%"
-	print "  Data restransmits: " + str(results['throughput']['retransmits'])
+        Ofertie.runTestSets( network, tests, ofcommands_list, self, results_folder )
 
-	print "Testing IPv4 UDP from ROIA player"
-        filename = Ofertie.doIperf3( network, 'h1', '10.0.0.2', '-4 -u -b 10M' )
-        results = Ofertie.getIperf3Results(filename)
-        self.assertFalse('error' in results)
-        print "  Data rate: " + str(results['bandwidth']) + "Mb/s"
-        print "  Data lost: " + str(results['throughput']['lost_percent']) + "%"
-	print "  Data jitter: " + str(results['throughput']['jitter']) + "ms"
-
-        print "Testing IPv6 TCP from ROIA player"
-        filename = Ofertie.doIperf3( network, 'h1', 'fd10:0:0::2', '-6 -u -b 10M' )
-        results = Ofertie.getIperf3Results(filename)
-        self.assertFalse('error' in results)
-        print "  Data rate: " + str(results['bandwidth']) + "Mb/s"
-        print "  Data lost: " + str(results['throughput']['lost_percent']) + "%"
-        print "  Data jitter: " + str(results['throughput']['jitter']) + "ms"
-
-	print "Testing IPv4 UDP in parallel from ROIA player"
-        filename = Ofertie.doIperf3( network, 'h1', '10.0.0.2', '-4 -u -b 10M -P 5' )
-        results = Ofertie.getIperf3Results(filename)
-        self.assertFalse('error' in results)
-        print "  Data rate: " + str(results['bandwidth']) + "Mb/s"
-        print "  Data lost: " + str(results['throughput']['lost_percent']) + "%"
-        print "  Data jitter: " + str(results['throughput']['jitter']) + "ms"
-
-	Ofertie.finished( network )
+        Ofertie.killProcess( network, 'h2', iperf_pid )
+        Ofertie.finished( network )
 
 
 if __name__ == '__main__':
