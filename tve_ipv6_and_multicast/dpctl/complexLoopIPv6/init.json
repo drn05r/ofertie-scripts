@@ -1,0 +1,49 @@
+[
+	{
+		"switch":"s1",
+		"command_type":"flow-mod",
+		"arguments":"table=0 in_port=3 apply:output=2"
+	},
+	{
+                "switch":"s2",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=3 apply:output=2"
+        },
+	{
+                "switch":"s3",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=3 apply:output=2"
+        },
+	{
+                "switch":"s3",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,ipv4_dst=10.0.0.2 apply:output=3"
+        },
+	{
+                "switch":"s2",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,eth_type=0x800,ipv4_dst=10.0.0.3 apply:output=3"
+        },
+	{
+                "switch":"s1",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,eth_type=0x800,ipv4_dst=10.0.0.1 apply:output=3"
+        },
+	{
+                "switch":"s3",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:0::2 apply:output=3"
+        },
+        {
+                "switch":"s2",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:0::3 apply:output=3"
+        },
+        {
+                "switch":"s1",
+                "command_type":"flow-mod",
+                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:0::1 apply:output=3"
+        },
+
+
+]

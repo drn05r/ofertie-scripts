@@ -42,7 +42,7 @@
                 ]
         },
 	{
-                "name":"Rate Limit on IPv6 Source Address",
+                "name":"Rate Limit on IPv6 Protocol",
                 "commands":
                 [
                         {
@@ -53,33 +53,12 @@
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,ipv6_src=fd10:0:0::2 meter:1 apply:output=1"
+                                "arguments":"table=0 in_port=2,ipv6_flabel=1234 meter:1 apply:output=1"
                         },
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,ipv6_src=fd10:0:0::1 meter:1 apply:output=2"
-                        }
-                ]
-        },
-	{
-                "name":"Rate Limit on IPv6 Source Address",
-                "commands":
-                [
-                        {
-                                "switch":"s1",
-                                "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,ipv6_src=fd10:0:0::2 meter:1 apply:output=1"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,ipv6_src=fd10:0:0::1 meter:1 apply:output=2"
+                                "arguments":"table=0 in_port=1,ipv6_flabel=1234 meter:1 apply:output=2"
                         }
                 ]
         }

@@ -15,22 +15,15 @@ class Ofertie():
     rule_change_sleep = 5
 
     @staticmethod
-    def getToposFilePath():
-        topofile = os.path.dirname( os.path.realpath( __file__ ) )
-        topofile = os.path.join( topofile, 'ofertie-topos.py' )
-        topofile = os.path.normpath( topofile )
-        return topofile
-
-    @staticmethod
-    def setupNetwork( topo ):
-        network = Ofertie.createShell( topo )
-        Ofertie.configureNetwork( network, topo )
+    def setupNetwork( topo, basepath ):
+        network = Ofertie.createShell( topo, basepath )
+        Ofertie.configureNetwork( network, topo, basepath )
         return network
 
     @staticmethod
-    def createShell( topo ):
+    def createShell( topo, basepath ):
         print >> sys.stderr, "Creating Mininet shell for "+topo
-        topofile = Ofertie.getToposFilePath()
+        topofile = os.path.normpath(os.path.join( basepath, 'ofertie-topos.py' ))
         p = pexpect.spawn( 'mn --custom %s --topo %s --mac --switch user --controller remote' % ( topofile, topo ) )
         p.expect( Ofertie.prompt )
         print >> sys.stderr, "Sleeping for " + str(Ofertie.startup_sleep) + " seconds to allow the OpenFlow controller to learn the network"
@@ -44,44 +37,19 @@ class Ofertie():
 	return p.before.split( '\n' )
 
     @staticmethod
-    def configureNetwork( p, topo ):
+    def configureNetwork( p, topo, basepath ):
         print >> sys.stderr, "Setting up "+topo+" network topology"
-        if topo == 'basicIPv6':
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth1 add fd10:0:0::1/48 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth1 add fd10:0:0::2/48 up' )
-        elif topo == 'basicIPv6Multicast':
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth1 add fd10:0:0::1/48 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth1 add fd10:0:0::2/48 up' )
-            Ofertie.expectline( p, 'h3 ifconfig h3-eth1 add fd10:0:0::3/48 up' )
-            Ofertie.expectline( p, 'h4 ifconfig h4-eth1 add fd10:0:0::4/48 up' ) 
-        elif topo == 'complexIPv6':
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth1 10.0.1.1 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth1 10.0.1.2 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h3 ifconfig h3-eth1 10.0.2.3 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth2 10.0.2.1 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth2 10.0.2.2 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth3 10.0.3.2 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h3 ifconfig h3-eth2 10.0.3.3 netmask 255.255.255.0 up' )
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth1 add fd10:0:1::1/48 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth1 add fd10:0:1::2/48 up' )
-            Ofertie.expectline( p, 'h3 ifconfig h3-eth1 add fd10:0:2::3/48 up' )
-            Ofertie.expectline( p, 'h1 ifconfig h1-eth2 add fd10:0:2::1/48 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth2 add fd10:0:2::2/48 up' )
-            Ofertie.expectline( p, 'h2 ifconfig h2-eth3 add fd10:0:3::2/48 up' )
-            Ofertie.expectline( p, 'h3 ifconfig h3-eth2 add fd10:0:3::3/48 up' )
-         
-
-#    @staticmethod
-#    def getPacketsReceived(output):
-#        lines = output.slit( '\n' )
-#        if len(lines) > 3
-#            regex = re.compile('(\d+) received'
-#            packets = regex.findall( lines[ -3 ] )#      
-#        if len(packets) > 0:
-#                return int(packets[ 0 ])
-#            sys.stderr.write("ERROR: Expected line does not contain number of packets received")
-#        sys.stderr.write("ERROR: output provided is not from a ping command.")
-#        return 0
+	json_data = open(os.path.normpath(os.path.join( basepath, 'ifconfig', topo + ".json" )))
+        commands = json.load(json_data)
+	for cmd in commands:
+	    command =  cmd['host'] + " ifconfig " + cmd['interface'] + " " + cmd['action'] + " " + cmd['address_netmask'] + " up"
+	    Ofertie.expectline( p, command)
+	init_file = os.path.normpath(os.path.join( basepath, 'dpctl', topo, 'init.json' ))
+	if os.path.isfile(init_file):
+	    json_data = open( init_file )
+            ofcommands = json.load(json_data)
+            for ofcommand in ofcommands:
+                Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
 
     @staticmethod
     def getMultipleIfconfigs( p, switch, interfaces ):
@@ -143,9 +111,7 @@ class Ofertie():
     @staticmethod 
     def applyDpctl( p, switch, command_type, action, args ):
       command = switch + " dpctl unix:/tmp/" + switch + " " + command_type + " cmd=" + action + "," + args
-#      print >> sys.stderr, "========================================"
       print >> sys.stderr, "COMMAND: " + command 
-#      print >> sys.stderr, "========================================"
       p.sendline( command )
       p.expect( Ofertie.prompt )
 #      print >> sys.stderr, p.before
@@ -162,14 +128,14 @@ class Ofertie():
     
     @staticmethod
     def getNewTempFile( directory ):
-      filename = directory + uuid.uuid4().hex
+      filename = os.path.normpath(os.path.join(directory, uuid.uuid4().hex))
       while os.path.isfile(filename):
-        filename = directory + uuid.uuid4().hex
+        filename = os.path.normpath(os.path.join(directory, uuid.uuid4().hex))
       return filename
     
     @staticmethod 
     def doIperf3( p, host, connect_to, args="", time=10, port=5001 ):
-      directory = "/tmp/iperf/"
+      directory = os.path.normpath(os.path.join( "tmp",  "iperf"))
       if not os.path.exists(directory):
         os.makedirs(directory)
       filename = Ofertie.getNewTempFile( directory )
@@ -310,7 +276,7 @@ class Ofertie():
       for ofcommands in ofcommands_list:
         if len(last_ofcommands) > 0 and len(last_ofcommands['commands']) > 0:
           print >> sys.stderr, "Removing OpenFlow commands for: " + last_ofcommands['name']
-          for ofcommands in last_ofcommands['commands']:
+          for ofcommand in last_ofcommands['commands']:
             Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'del', ofcommand['arguments'])
         print >> sys.stderr, "Applying OpenFlow commands for: " + ofcommands['name']
         for ofcommand in ofcommands['commands']:
@@ -318,7 +284,7 @@ class Ofertie():
         sleep(Ofertie.rule_change_sleep)
         print >> sys.stderr, "Sleeping for " + str(Ofertie.rule_change_sleep) + " seconds to ensure OpenFlow commands have been applied."
         Ofertie.runTestSet( p, tests, tester, output_destination, ofcommands['name'] )
-        last_ofcommand = ofcommands
+        last_ofcommands = ofcommands
   
  
     @staticmethod

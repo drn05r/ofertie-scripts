@@ -80,11 +80,17 @@ class ComplexIPv6( Topo ):
 	self.addLink( firstSwitch, fourthSwitch, 2, 1 )
         self.addLink( thirdHost, secondSwitch, 1, 2 )
         self.addLink( thirdHost, thirdSwitch, 2, 1 )
-# self.addLink( secondSwitch, fourthSwitch, 3, 2)
+        self.addLink( secondSwitch, fourthSwitch, 3, 2)
 	self.addLink( secondSwitch, secondHost, 4, 1)
 	self.addLink( thirdSwitch, secondHost, 2, 2)
 	self.addLink( fourthSwitch, secondHost, 3, 3)
 
+
+class ComplexLoopIPv6( Topo ):
+    "Complex IPv6 Topology with a Loop"
+
+    def __init__( self ):
+        "Creating Complex IPv6 topology with a loop (3 hosts, 4 switches)"
 class Loopback( Topo ):
     "Loopback topology"
 
@@ -102,14 +108,17 @@ class Loopback( Topo ):
 	firstSwitch = self.addSwitch( 's1' )
 	secondSwitch = self.addSwitch( 's2' )
 	thirdSwitch = self.addSwitch( 's3' )
-	
-	self.addLink( firstHost, firstSwitch, 1, 1 )
-	self.addLink( firstSwitch, secondHost, 2, 1 )
-	self.addLink( secondHost, secondSwitch, 2, 1 )
-	self.addLink( secondSwitch, thirdHost, 2, 1 )
-	self.addLink( thirdHost, thirdSwitch, 2, 1 )
-	self.addLink( thirdSwitch, firstHost, 2, 2 )
+	fourthSwitch = self.addSwitch( 's4' )
+		
+
+	self.addLink( firstHost, firstSwitch, 1, 3 )
+	self.addLink( firstSwitch, secondSwitch, 2, 1 )
+	self.addLink( secondSwitch, thirdSwitch, 2, 1 )
+	self.addLink( thirdSwitch, fourthSwitch, 2, 1 )
+	self.addLink( fourthSwitch, firstSwitch, 2, 1 )
+	self.addLink( secondHost, thirdSwitch, 1, 3 )
+	self.addLink( thirdHost, secondSwitch, 1, 3 )
 
 
-topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'loopback': ( lambda: Loopback() ) }
+topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'complexLoopIPv6': ( lambda: ComplexLoopIPv6() ), 'loopback': ( lambda: Loopback() ) }
 

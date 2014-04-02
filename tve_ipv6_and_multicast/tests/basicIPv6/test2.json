@@ -24,6 +24,12 @@
                 "arguments":"-6 -P 5"
         },
 	{
+                "name":"IPv6 TCP with flow label from a ROIA player",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -L 1234"
+        },
+	{
                 "name":"IPv4 UDP from a ROIA player",
                 "host":"h1",
                 "destination":"10.0.0.2",
@@ -46,5 +52,11 @@
                 "host":"h1",
                 "destination":"fd10:0:0::2",
                 "arguments":"-6 -u -b 10M -P 5"
+        },
+	{
+                "name":"IPv6 UDP with a flow label from a ROIA player",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -u -b 10M -L 1234"
         }
 ]

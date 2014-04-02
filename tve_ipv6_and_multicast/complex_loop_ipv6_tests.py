@@ -12,16 +12,15 @@ from ofertieutils import Ofertie
 from time import sleep
 from mininet.util import quietRun
 
-class BasicIPv6Tests( unittest.TestCase ):
+class ComplexLoopIPv6Tests( unittest.TestCase ):
 
-    output_type = "machine"
-    output_destination = "file"
-    topology = "basicIPv6"
-    basepath = str(os.path.normpath(os.path.dirname(os.path.realpath( __file__ ))))
+    output_type = 'machine'
+    output_destination = 'file'
+    topology = 'complexLoopIPv6'
 
     def nottest1( self ):
         print >> sys.stderr, "Test 1: Sanity test that IPv6 and OpenFlow controller are working"
-        network = Ofertie.setupNetwork( self.topology, self.basepath )
+        network = Ofertie.setupNetwork( self.topology )
 
 	ping = Ofertie.doPing( network, 'h1', '10.0.0.2', '-s 8186' )
         self.assertGreater( ping.pkts_recv,  0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> 10.0.0.2' )
@@ -48,19 +47,17 @@ class BasicIPv6Tests( unittest.TestCase ):
 
     def test2( self ): 
         print >> sys.stderr, "Test 2: Various types of IPv4 and IPv6 traffic pre and post flow mods"
-        network = Ofertie.setupNetwork( self.topology, self.basepath )
+        network = Ofertie.setupNetwork( self.topology )
         iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
 
-	test_file = os.path.normpath(os.path.join( self.basepath, 'tests', self.topology, 'test2.json' ))
-	json_data = open(test_file)
+	json_data = open('tests/' + self.topology + '/test2a.json')
 	tests = json.load(json_data)
 	random.shuffle(tests)
 
-	ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'dpctl', self.topology, 'general.json' ))
-	json_data = open(ofcommands_file)
+	json_data = open('dpctl/' + self.topology + '/new.json')
         ofcommands_list = json.load(json_data)
 
-	results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "test2" ))
+	results_folder = "results/" + self.topology + "/test2" 
 
 	Ofertie.runTestSets( network, tests, ofcommands_list, self, results_folder )
         
@@ -69,19 +66,17 @@ class BasicIPv6Tests( unittest.TestCase ):
 
     def nottest3( self ):
 	print >> sys.stderr, "Test 3: Test to see how maximum segment size behave on IPv4 and IPv6 pre and post OpenFlow modifications"
-        network = Ofertie.setupNetwork( self.topology, self.basepath )
+        network = Ofertie.setupNetwork( self.topology )
 	iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
 
-        test_file = os.path.normpath(os.path.join( self.basepath, 'tests', self.topology, 'test3.json' ))
-	json_data = open(test_file)
+	json_data = open('tests/' + self.topology + '/test3.json')
         tests = json.load(json_data)
         random.shuffle(tests)
 
-	ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'dpctl', self.topology, 'general.json' ))
-        json_data = open(ofcommands_file)
+        json_data = open('dpctl/' + self.topology + '/general.json')
         ofcommands_list = json.load(json_data)
 	
-	results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "test3" ))
+        results_folder = "results/" + self.topology + "/test3"
 
         Ofertie.runTestSets( network, tests, ofcommands_list, self, results_folder )
 
