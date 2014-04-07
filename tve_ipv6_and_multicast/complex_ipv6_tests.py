@@ -9,15 +9,17 @@ from ofertieutils import Ofertie
 from time import sleep
 from mininet.util import quietRun
 
-class IPv6Tests( unittest.TestCase ):
+class ComplexIPv6Tests( unittest.TestCase ):
 
-    network = '' 
+    output_type = 'machine'
+    output_destination = 'file'
+    topology = 'complexIPv6'
 
     def test1( self ):
         "IPv6 Test Complex Topology"
-        network = Ofertie.createShell( 'complexIPv6' )
-        Ofertie.configureNetwork( network, 'complexIPv6' )
-	ping = Ofertie.doPing( network, 'h1', '10.0.1.2' )
+        network = Ofertie.setupNetwork( self.topology )
+	
+        ping = Ofertie.doPing( network, 'h1', '10.0.1.2' )
         self.assertGreater( ping.pkts_recv,  0, 'Received ' + str(ping.pkts_recv) + ' packet(s) for ping h1 -> 10.0.1.2' )
         print "SUCCESS: Received " + str(ping.pkts_recv) + " packet(s) for ping h1 -> 10.0.1.2"
         ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:1::2' )

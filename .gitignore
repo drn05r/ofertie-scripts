@@ -2,3 +2,4 @@ vnet_bridge/settings.bash
 ofelia_tap/tap.conf
 *.csv
 tve_ipv6_and_multicast/dependencies/*
+tve_ipv6_and_multicast/tmp/*

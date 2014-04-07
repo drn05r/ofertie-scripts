@@ -23,6 +23,7 @@ class BasicIPv6MulticastTests( unittest.TestCase ):
         ping6 = Ofertie.doPing6( network, 'h1', 'fd10:0:0::3' )
         self.assertGreater( ping6.pkts_recv, 0, 'Received ' + str(ping6.pkts_recv) + ' packet(s) for ping6 h1 -> fd10:0:0::2' )
         print "SUCCESS: Received " + str(ping6.pkts_recv) + " packet(s) for ping6 h1 -> fd10:0:0::3"
+	ping6multicast = Ofertie.doPing6( network, 'h1', 'ff02::1', '-I h1-eth1' )
         Ofertie.finished( network )
 
 if __name__ == '__main__':
