@@ -24,9 +24,9 @@ echo -e "\n\nInstalling Mininet with OpenFlow Software Switch and Modified NOX C
 sudo mininet/util/install.sh -3fxn || { echo -e "\n\nCould not install Mininet core files and dependencies ... aborting!\n"; exit 1; }
 
 architecture=`arch`
-if [ -f ${BUILD_DIR}/${architecture}/iperf3/iperf3 ]; then
+if [ -f ${BUILD_DIR}/${architecture}/iperf3 ]; then
 	echo -e "\n\nInstalling Iperf3 binary (compiled for ${architecture} architectures)\n"
-	sudo cp $BUILD_DIR/$architecture/iperf3/iperf3 /usr/local/bin/
+	sudo cp $BUILD_DIR/$architecture/iperf3 /usr/local/bin/
 else
 	echo -e "\n\nERROR: Iperf3 needs to be built from source for your architecture (${architecture}).  Follow the instructions in ${BUILD_DIR}/iperf/INSTALL\n"
 	exit 1;
