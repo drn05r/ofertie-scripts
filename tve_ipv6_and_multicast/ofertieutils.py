@@ -266,9 +266,11 @@ class Ofertie():
 	Ofertie.printResults(tester.output_type, output_destination, test['name'], results) 
 
     @staticmethod
-    def runTestSets(p, tests, ofcommands_list, tester, results_folder = "/tmp/"):
+    def runTestSets(p, tests, ofcommands_list, tester, results_directory = "/tmp/"):
       if tester.output_destination != "sys.stdout":
-        output_destination = open(results_folder + "/" + uuid.uuid4().hex + ".csv" , 'w')
+        if not os.path.exists(results_directory):
+          os.makedirs(results_directory)        
+        output_destination = open(results_directory + "/" + uuid.uuid4().hex + ".csv" , 'w')
       else:
         output_destination = tester.output_destination
       Ofertie.runTestSet( p, tests, tester, output_destination )
