@@ -135,7 +135,7 @@ class Ofertie():
     
     @staticmethod 
     def doIperf3( p, host, connect_to, args="", time=10, port=5001 ):
-      directory = os.path.normpath(os.path.join( "tmp",  "iperf"))
+      directory = os.path.join( os.path.sep, "tmp", "ofertie",  "iperf" )
       if not os.path.exists(directory):
         os.makedirs(directory)
       filename = Ofertie.getNewTempFile( directory )
