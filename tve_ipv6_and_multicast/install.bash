@@ -14,12 +14,6 @@ if [ ! -d iperf ]; then
 	git clone https://github.com/esnet/iperf.git || { echo -e "\n\nCould not clone Git respository for iperf3 ... aborting!\n"; exit 1; }
 fi
 
-
-echo -e "\n\nInstalling useful networking features and utilities\n"
-sudo apt-get update || { echo -e "\n\nCould not update package list for APT ... aborting!\n"; exit 1; }
-sudo apt-get install -y vlan bridge-utils nmap || { echo -e "\n\nCould not install selected network feature and utility packages ... aborting!\n"; exit 1; }
-sudo modprobe 8021q || { echo -e "\n\nCould not enable 8021q kernel module for vlans ... aborting!\n"; exit 1; }
-
 echo -e "\n\nInstalling Mininet with OpenFlow Software Switch and Modified NOX Controller\n"
 sudo mininet/util/install.sh -3fxn || { echo -e "\n\nCould not install Mininet core files and dependencies ... aborting!\n"; exit 1; }
 
@@ -31,6 +25,11 @@ else
 	echo -e "\n\nERROR: Iperf3 needs to be built from source for your architecture (${architecture}).  Follow the instructions in ${BUILD_DIR}/iperf/INSTALL\n"
 	exit 1;
 fi
+
+echo -e "\n\nInstalling useful networking features and utilities\n"
+sudo apt-get update || { echo -e "\n\nCould not update package list for APT ... aborting!\n"; exit 1; }
+sudo apt-get install -y vlan bridge-utils nmap python-pexpect || { echo -e "\n\nCould not install selected network feature and utility packages ... aborting!\n"; exit 1; }
+sudo modprobe 8021q || { echo -e "\n\nCould not enable 8021q kernel module for vlans ... aborting!\n"; exit 1; }
 
 echo -e "\n\nInfrastructure for running experiments tests has been successfully installed.  You can run the following experiment test sets:
 	basicIPv6
