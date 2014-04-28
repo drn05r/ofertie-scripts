@@ -33,7 +33,7 @@ class Ofertie():
     @staticmethod
     def expectline( p, command ):
         p.sendline( command )
-        p.expect( Ofertie.prompt )
+        p.expect( [pexpect.TIMEOUT, Ofertie.prompt], timeout=60 )
 	return p.before.split( '\n' )
 
     @staticmethod
@@ -165,7 +165,7 @@ class Ofertie():
       Ofertie.expectline( p, command )
 
     @staticmethod
-    def getIperf3Results( filename, result_types = ["bandwidth", "throughput", "cpu_usage"] ):
+    def getIperf3Results( filename, udp = 0, result_types = ["bandwidth", "throughput", "cpu_usage"] ):
       with open(filename, 'r') as filehandle:
         try:
           jsondata = json.load(filehandle)
@@ -175,25 +175,22 @@ class Ofertie():
       if 'error' in jsondata:
         return jsondata
       results = {'error': ''}
-      udp = 0
       if 'bandwidth' in result_types:
         results['bandwidth'] = 0
         if len(jsondata['end']['streams']) < 2:
-          if 'udp' in jsondata['end']['streams'][0]:
+          if udp == 1:
             results['bandwidth'] = jsondata['end']['streams'][0]['udp']['bits_per_second'] / 1000000
           else:
             results['bandwidth'] = jsondata['end']['streams'][0]['receiver']['bits_per_second'] / 1000000
         else:
-          if 'udp' in jsondata['end']['streams'][0]: 
+          if udp == 1: 
             results['bandwidth'] = jsondata['end']['sum']['bits_per_second'] / 1000000
           else:
             results['bandwidth'] = jsondata['end']['sum_received']['bits_per_second'] / 1000000
       if 'throughput' in result_types:
         results['throughput'] = {}
-        udp = 0
         if len(jsondata['end']['streams']) < 2:
-          if 'udp' in jsondata['end']['streams'][0]:
-            udp = 1
+          if udp == 1:
             results['throughput']['megabytes'] = jsondata['end']['streams'][0]['udp']['bytes'] / 1000000
             results['throughput']['packets'] = jsondata['end']['streams'][0]['udp']['packets']
             results['throughput']['lost_packets'] = jsondata['end']['streams'][0]['udp']['lost_packets']
@@ -206,8 +203,7 @@ class Ofertie():
             if 'retransmits' in jsondata['end']['streams'][0]['sender']:
               results['throughput']['retransmits'] = jsondata['end']['streams'][0]['sender']['retransmits'] 
         else:
-          if 'udp' in jsondata['end']['streams'][0]:
-            udp = 1
+          if udp == 1:
             results['throughput']['megabytes'] = jsondata['end']['sum']['bytes'] / 1000000
             results['throughput']['packets'] = jsondata['end']['sum']['packets']
             results['throughput']['lost_packets'] = jsondata['end']['sum']['lost_packets']
@@ -227,7 +223,18 @@ class Ofertie():
       return results
 
     @staticmethod
-    def printResults(output_type, output_destination, test, results):
+    def printResults(output_type, output_destination, test, udp, results):
+      if 'bandwidth' not in results:
+        results['bandwidth'] = 0
+        results['throughput'] = {}
+        results['throughput']['lost_percent'] = 0;
+        if udp == 1:
+          results['throughput']['jitter'] = 0
+	else:
+          results['throughput']['retransmits'] = 0
+	results['cpu_usage'] = {}
+	results['cpu_usage']['host_total'] = 0
+        results['cpu_usage']['remote_total'] = 0 
       if output_type == "human":
          Ofertie.printResultsHumanReadable(test, results, output_destination)
       else:
@@ -260,10 +267,17 @@ class Ofertie():
         print >> output_destination, "\"" + set_name + "\""
       for test in tests:
         print >> sys.stderr, "Testing: "+ test['name']
+	arguments = test['arguments'].split(' ')
+	if '-u' in test['arguments'].split(' '):
+          test['udp'] = 1
+        else:
+          test['udp'] = 0
         filename = Ofertie.doIperf3(p, test['host'], test['destination'], test['arguments'])
-	results = Ofertie.getIperf3Results(filename)
-        tester.assertEqual(results['error'], "", results['error'])
-	Ofertie.printResults(tester.output_type, output_destination, test['name'], results) 
+	results = Ofertie.getIperf3Results(filename, test['udp'])
+	if results['error'] != "":
+		print >> sys.stderr, "WARNING: No iperf data generated.  This may be intentional for this particular test or it may be an error."
+	
+	Ofertie.printResults(tester.output_type, output_destination, test['name'], test['udp'], results) 
 
     @staticmethod
     def runTestSets(p, tests, ofcommands_list, tester, results_directory = "/tmp/"):

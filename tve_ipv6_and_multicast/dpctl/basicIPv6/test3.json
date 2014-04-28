@@ -1,6 +1,6 @@
 [
 	{
-                "name":"Rate Limit on IPv6 Source Address (ROIA Server)",
+                "name":"Rate Limit for TCP on IPv4",
                 "commands":
                 [
                         {
@@ -11,98 +11,102 @@
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,eth_type=0x86dd,ipv6_src=fd10:0:0::2/48 meter:1 apply:output=1"
+                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_proto=6 meter:1 apply:output=2"
+                        }
+
+                ]
+        },
+	{
+                "name":"Rate Limit for TCP on IPv6",
+                "commands":
+                [
+                        {
+                                "switch":"s1",
+                                "command_type":"meter-mod",
+                                "arguments":"flags=1,meter=1 drop:rate=5000"
+                        },
+                        {
+                                "switch":"s1",
+                                "command_type":"flow-mod",
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_proto=6 meter:1 apply:output=2"
+                        }
+
+                ]
+        },
+	{
+                "name":"Rate Limit for TCP on IPv4 and IPv6",
+                "commands":
+                [
+                        {
+                                "switch":"s1",
+                                "command_type":"meter-mod",
+                                "arguments":"flags=1,meter=1 drop:rate=5000"
+                        },
+			{
+                                "switch":"s1",
+                                "command_type":"flow-mod",
+                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_proto=6 meter:1 apply:output=2"
+                        },
+			{
+                                "switch":"s1",
+                                "command_type":"flow-mod",
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_proto=6 meter:1 apply:output=2"
                         }
                 ]
         },
 	{
-                "name":"Rate Limit on IPv6 Source Address (ROIA Player)",
+                "name":"Very Strong Rate Limit for TCP on IPv4",
                 "commands":
                 [
                         {
                                 "switch":"s1",
                                 "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
+                                "arguments":"flags=1,meter=1 drop:rate=50"
                         },
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_src=fd10:0:0::1/48 meter:1 apply:output=2"
+                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_proto=17 meter:1 apply:output=2"
                         }
-                ]
-        },
-	{
-                "name":"Rate Limit on IPv6 Source Address (ROIA Server and Player Address)",
-                "commands":
-                [
-                        {
-                                "switch":"s1",
-                                "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,eth_type=0x86dd,ipv6_src=fd10:0:0::2/48 meter:1 apply:output=1"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_src=fd10:0:0::1/48 meter:1 apply:output=2"
-                        }
-                ]
-        },
-	{
-                "name":"Rate Limit on IPv6 Destination Address (ROIA Server)",
-                "commands":
-                [
-                        {
-                                "switch":"s1",
-                                "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,eth_type=0x86dd,ipv6_dest=fd10:0:0::2/48 meter:1 apply:output=1"
-                        }
+
                 ]
         },
         {
-                "name":"Rate Limit on IPv6 Destination Address (ROIA Player)",
+                "name":"Very Strong Rate Limit for TCP on IPv6",
                 "commands":
                 [
                         {
                                 "switch":"s1",
                                 "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
+                                "arguments":"flags=1,meter=1 drop:rate=50"
                         },
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dest=fd10:0:0::1/48 meter:1 apply:output=2"
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_proto=17 meter:1 apply:output=2"
                         }
+
                 ]
         },
         {
-                "name":"Rate Limit on IPv6 Destination Address (ROIA Server and Player Address)",
+                "name":"Very Strong Rate Limit for TCP on IPv4 and IPv6",
                 "commands":
                 [
                         {
                                 "switch":"s1",
                                 "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
+                                "arguments":"flags=1,meter=1 drop:rate=50"
                         },
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=2,eth_type=0x86dd,ipv6_dest=fd10:0:0::2/48 meter:1 apply:output=1"
+                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_proto=17 meter:1 apply:output=2"
                         },
                         {
                                 "switch":"s1",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dest=fd10:0:0::1/48 meter:1 apply:output=2"
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_proto=17 meter:1 apply:output=2"
                         }
                 ]
         }
-]
+]	
