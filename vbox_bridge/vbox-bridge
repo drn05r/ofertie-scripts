@@ -1,0 +1,95 @@
+#!/bin/bash
+TAPNUM=14
+BRNUM=14
+HOSTIF="eth1"
+GATEWAY="152.78.65.254"
+HOSTCONF="dhcp"
+HOSTIP=""
+HOSTNETMASK="255.255.255.0"
+
+start(){
+	if [ `dpkg -l | grep "ii  bridge-utils | wc -l` -eq 0 -o `dpkg -l | grep "ii  uml-utilities | wc -l` -eq 0 ]; then 
+		echo "ERROR: Make sure DEB packages bridge-utils and uml-utilities are installed."
+		exit 11;
+	fi
+	if [ `ifconfig -a | grep tap${TAPNUM} | wc -l` -eq 0 ]; then
+		echo -e "\n\nCreating interface tap${TAPNUM}\n"
+		sudo tunctl -t tap${TAPNUM} -u $USER || { echo -e "\n\nERROR: Could not add interface tap${TAPNUM}\n"; exit 12; }
+	fi
+	echo -e "\n\nAdding Bridge br${BRNUM}\n"
+	sudo brctl addbr br${BRNUM} || { echo -e "\n\nERROR: Could not add bridge${BRNUM}\n"; exit 2; }
+	echo -e "\n\nConfiguring interface ${HOSTIF} in promiscuous mode.\n"
+	sudo ifconfig ${HOSTIF} 0.0.0.0 promisc || { echo -e "\n\nERROR: Could not configure interface ${HOSTIF} in promiscuous mode.\n"; exit 3; }
+	echo -e "\n\nAdding interface ${HOSTIF} to bridge br${BRNUM}.\n"
+	sudo brctl addif br${BRNUM} ${HOSTIF} || { echo -e "\n\nERROR: Could not add interface ${HOSTIF} to bridge br${BRNUM}.\n"; exit 4; }
+	if [ "${HOSTCONF}" == "dhcp" ]; then
+		echo -e "\n\nUsing DHCP to acquire and IP address for bridge br${BRNUM}.\n"
+		sudo dhclient br14 || { echo -e "\n\nERROR: Could not acquire an IP address using DHCP for bridge br${BRNUM}.\n"; exit 5; }
+	else
+		echo -e "\n\nConfiguring bridge br${BRNUM} with IP adress ${HOSTIP}/${HOSTNETMASK}.\n"
+		sudo ifconfig br${BRNUM} ${HOSTIP} netmask ${HOSTNETMASK} || { echo -e "\n\nERROR: Could not configure IP address ${HOSTIP}/${HOSTNETMASK} for bridge br${BRNUM}.\n"; exit 6; }
+	fi
+	echo -e "\n\nAdding interface tap{$TAPNUM} to bridge br${BRNUM}.\n"
+	sudo brctl addif br${BRNUM} tap${TAPNUM} || { echo -e "\n\nERROR: Could not add interface tap${TAPNUM} to bridge br${BRNUM}.\n"; exit 7; }
+	echo -e "\n\nBringing up interface tap{$TAPNUM}\n"
+	sudo ifconfig tap${TAPNUM} up || { echo -e "\n\nERROR: Could not bring up interface tap${TAPNUM}.\n"; exit 8; }
+	if [ `route -n | grep ${GATEWAY} | grep "br${BRNUM}" | wc -l` -eq 0 ]; then 
+		echo -e "\n\nAdding default gateway of ${GATEWAY} to bridge br${BRNUM}.\n"
+		sudo route add default gw ${GATEWAY} br${BRNUM} || { echo -e "\n\nERROR: Could not add default gateway of ${GATEWAY} to bridge br${BRNUM}.\n"; exit 9; }
+	fi
+	echo -e "\n\nMaking /dev/net/tun read/write to all.\n"
+	sudo chmod 0666 /dev/net/tun || { echo -e "\n\nERROR: Could not make /dev/net/tun read/write to all\n"; exit 10; }
+}
+
+stop(){
+	echo -e "\n\nDeleting default gateway of ${GATEWAY} for bridge br${BRNUM}.\n"
+	sudo route del default gw ${GATEWAY} br${BRNUM} || { echo -e "\n\nERROR: Could not delete default gateway of ${GATEWAY} to bridge br${BRNUM}.\n"; exit 13; }
+	echo -e "\n\nTaking down interface tap${TAPNUM}.\n"
+	sudo ifconfig tap${TAPNUM} down || { echo -e "\n\nERROR: Could not take down interface tap${TAPNUM}.\n"; exit 14; }
+	echo -e "\n\nRemoving interface tap{$TAPNUM} from bridge br${BRNUM}.\n"
+	sudo brctl delif br${BRNUM} tap${TAPNUM} || { echo -e "\n\nERROR: Could not remove interface tap${TAPNUM} to bridge br${BRNUM}.\n"; exit 15; }
+	echo -e "\n\nRemoving interface tap{$HOSTIF} from bridge br${BRNUM}.\n"
+	sudo brctl delif br${BRNUM} ${HOSTIF} || { echo -e "\n\nERROR: Could not remove interface ${HOSTIF} to bridge br${BRNUM}.\n"; exit 16; }
+	echo -e "\n\nTaking down interface br${BRNUM}.\n"
+	sudo ifconfig br${BRNUM} down || { echo -e "\n\nERROR: Could not take down interface br${BRNUM}.\n"; exit 17; }
+	echo -e "\n\nDeleting bridge br${BRNUM}.\n"
+	sudo brctl delbr br${BRNUM} || { echo -e "\n\nERROR: Could not delete bridge${BRNUM}\n"; exit 18; }
+	if [ "${HOSTCONF}" == "dhcp" ]; then
+		echo -e "\n\nUsing DHCP to acquire and IP address for interface ${HOSTIF}.\n"
+		sudo dhclient ${HOSTIF} || { echo -e "\n\nERROR: Could not acquire an IP address using DHCP for interface ${HOSTIF}.\n"; exit 19; }
+	else
+		echo -e "\n\nConfiguring interface ${HOSTIF} with IP adress ${HOSTIP}/${HOSTNETMASK}.\n"
+		sudo ifconfig ${HOSTIF} ${HOSTIP} netmask ${HOSTNETMASK} || { echo -e "\n\nERROR: Could not configure IP address ${HOSTIP}/${HOSTNETMASK} for interface ${HOSTIF}.\n"; exit 20; }
+	fi
+}
+
+status(){
+	ifconfig br${BRNUM}
+	ifconfig tap${TAPNUM}
+	route -n | grep br${BRNUM}
+	ping -c 4 ${GATEWAY}
+}
+
+help(){
+	echo "This script can be called with one of the following arguments stop | start | restart | status."
+}
+
+case "$1" in
+  restart)
+	stop
+	start
+	;;
+  start)
+	start
+	;;
+  stop)
+	stop
+  	;;
+  status)
+	status
+	;;
+  *)
+	help
+	exit 1
+	;;
+esac
