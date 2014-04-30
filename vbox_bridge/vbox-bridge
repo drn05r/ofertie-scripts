@@ -43,23 +43,23 @@ start(){
 
 stop(){
 	echo -e "\n\nDeleting default gateway of ${GATEWAY} for bridge br${BRNUM}.\n"
-	sudo route del default gw ${GATEWAY} br${BRNUM} || { echo -e "\n\nERROR: Could not delete default gateway of ${GATEWAY} to bridge br${BRNUM}.\n"; exit 13; }
+	sudo route del default gw ${GATEWAY} br${BRNUM} || { echo -e "\n\nERROR: Could not delete default gateway of ${GATEWAY} to bridge br${BRNUM}.\n"; }
 	echo -e "\n\nTaking down interface tap${TAPNUM}.\n"
-	sudo ifconfig tap${TAPNUM} down || { echo -e "\n\nERROR: Could not take down interface tap${TAPNUM}.\n"; exit 14; }
+	sudo ifconfig tap${TAPNUM} down || { echo -e "\n\nERROR: Could not take down interface tap${TAPNUM}.\n"; }
 	echo -e "\n\nRemoving interface tap{$TAPNUM} from bridge br${BRNUM}.\n"
-	sudo brctl delif br${BRNUM} tap${TAPNUM} || { echo -e "\n\nERROR: Could not remove interface tap${TAPNUM} to bridge br${BRNUM}.\n"; exit 15; }
+	sudo brctl delif br${BRNUM} tap${TAPNUM} || { echo -e "\n\nERROR: Could not remove interface tap${TAPNUM} to bridge br${BRNUM}.\n"; }
 	echo -e "\n\nRemoving interface tap{$HOSTIF} from bridge br${BRNUM}.\n"
-	sudo brctl delif br${BRNUM} ${HOSTIF} || { echo -e "\n\nERROR: Could not remove interface ${HOSTIF} to bridge br${BRNUM}.\n"; exit 16; }
+	sudo brctl delif br${BRNUM} ${HOSTIF} || { echo -e "\n\nERROR: Could not remove interface ${HOSTIF} to bridge br${BRNUM}.\n"; }
 	echo -e "\n\nTaking down interface br${BRNUM}.\n"
-	sudo ifconfig br${BRNUM} down || { echo -e "\n\nERROR: Could not take down interface br${BRNUM}.\n"; exit 17; }
+	sudo ifconfig br${BRNUM} down || { echo -e "\n\nERROR: Could not take down interface br${BRNUM}.\n"; }
 	echo -e "\n\nDeleting bridge br${BRNUM}.\n"
-	sudo brctl delbr br${BRNUM} || { echo -e "\n\nERROR: Could not delete bridge${BRNUM}\n"; exit 18; }
+	sudo brctl delbr br${BRNUM} || { echo -e "\n\nERROR: Could not delete bridge${BRNUM}\n"; }
 	if [ "${HOSTCONF}" == "dhcp" ]; then
 		echo -e "\n\nUsing DHCP to acquire and IP address for interface ${HOSTIF}.\n"
-		sudo dhclient ${HOSTIF} || { echo -e "\n\nERROR: Could not acquire an IP address using DHCP for interface ${HOSTIF}.\n"; exit 19; }
+		sudo dhclient ${HOSTIF} || { echo -e "\n\nERROR: Could not acquire an IP address using DHCP for interface ${HOSTIF}.\n"; }
 	else
 		echo -e "\n\nConfiguring interface ${HOSTIF} with IP adress ${HOSTIP}/${HOSTNETMASK}.\n"
-		sudo ifconfig ${HOSTIF} ${HOSTIP} netmask ${HOSTNETMASK} || { echo -e "\n\nERROR: Could not configure IP address ${HOSTIP}/${HOSTNETMASK} for interface ${HOSTIF}.\n"; exit 20; }
+		sudo ifconfig ${HOSTIF} ${HOSTIP} netmask ${HOSTNETMASK} || { echo -e "\n\nERROR: Could not configure IP address ${HOSTIP}/${HOSTNETMASK} for interface ${HOSTIF}.\n"; }
 	fi
 }
 
