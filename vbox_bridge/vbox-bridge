@@ -8,7 +8,7 @@ HOSTIP=""
 HOSTNETMASK="255.255.255.0"
 
 start(){
-	if [ `dpkg -l | grep "ii  bridge-utils | wc -l` -eq 0 -o `dpkg -l | grep "ii  uml-utilities | wc -l` -eq 0 ]; then 
+	if [ `dpkg -l | grep "ii  bridge-utils" | wc -l` -eq 0 -o `dpkg -l | grep "ii  uml-utilities" | wc -l` -eq 0 ]; then 
 		echo "ERROR: Make sure DEB packages bridge-utils and uml-utilities are installed."
 		exit 11;
 	fi
