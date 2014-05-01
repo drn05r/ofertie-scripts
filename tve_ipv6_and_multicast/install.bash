@@ -28,7 +28,7 @@ fi
 
 echo -e "\n\nInstalling useful networking features and utilities\n"
 sudo apt-get update || { echo -e "\n\nCould not update package list for APT ... aborting!\n"; exit 1; }
-sudo apt-get install -y vlan bridge-utils nmap python-pexpect || { echo -e "\n\nCould not install selected network feature and utility packages ... aborting!\n"; exit 1; }
+sudo apt-get install -y vlan bridge-utils nmap python-pexpect r-base || { echo -e "\n\nCould not install selected network feature and utility packages ... aborting!\n"; exit 1; }
 sudo modprobe 8021q || { echo -e "\n\nCould not enable 8021q kernel module for vlans ... aborting!\n"; exit 1; }
 
 echo -e "\n\nInfrastructure for running experiments tests has been successfully installed.  You can run the following experiment test sets:
