@@ -1,0 +1,14 @@
+[
+	{
+		"name":"IPv6 TCP",
+		"host":"h1",
+		"destination":"fd10:0:0::2",
+		"arguments":"-6"
+	},
+	{
+                "name":"IPv6 TCP (flow label 23)",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -L 23"
+        }
+]

@@ -90,11 +90,6 @@ class ComplexLoopIPv6( Topo ):
     "Complex IPv6 Topology with a Loop"
 
     def __init__( self ):
-        "Creating Complex IPv6 topology with a loop (3 hosts, 4 switches)"
-class Loopback( Topo ):
-    "Loopback topology"
-
-    def __init__( self ):
         "Creating Loopback topology (3 hosts, 3 switches)"
 
         # Initialize topology
@@ -119,6 +114,29 @@ class Loopback( Topo ):
 	self.addLink( secondHost, thirdSwitch, 1, 3 )
 	self.addLink( thirdHost, secondSwitch, 1, 3 )
 
+class OfertieTest( Topo ):
+    "OFERTIE Test"
 
-topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'complexLoopIPv6': ( lambda: ComplexLoopIPv6() ), 'loopback': ( lambda: Loopback() ) }
+    def __init__( self ):
+        "Creating sandpit topology for testing out stuff"
+
+	 # Initialize topology
+        Topo.__init__( self )
+
+        # Add hosts and switches
+#	firstHost = self.addHost( 'h1', ip="10.0.1.1" )
+#	secondHost = self.addHost( 'h1', ip="10.0.1.2" )
+        firstHost = self.addHost( 'h1', ip="fd10:0:0::1/48" )
+        secondHost = self.addHost( 'h2', ip="fd10:0:0::2/48" )
+
+	firstSwitch = self.addSwitch( 's1' )
+        secondSwitch = self.addSwitch( 's2' )
+
+        # Add links
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+        self.addLink( firstSwitch, secondSwitch, 2, 1 )
+        self.addLink( secondSwitch, secondHost, 2, 1 )
+
+
+topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'complexLoopIPv6': ( lambda: ComplexLoopIPv6() ), 'ofertieTest': ( lambda: OfertieTest() ) }
 

@@ -1,2 +1,5 @@
 *.pyc
 graphs/*
+results/*
+rtr-settings.bash
+nox.info

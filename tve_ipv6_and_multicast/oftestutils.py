@@ -8,7 +8,7 @@ import json
 from time import sleep
 from mininet.util import quietRun
 
-class Ofertie():
+class Oftutils():
 
     prompt = 'mininet>'
     startup_sleep = 10
@@ -16,8 +16,8 @@ class Ofertie():
 
     @staticmethod
     def setupNetwork( topo, basepath ):
-        network = Ofertie.createShell( topo, basepath )
-        Ofertie.configureNetwork( network, topo, basepath )
+        network = Oftutils.createShell( topo, basepath )
+        Oftutils.configureNetwork( network, topo, basepath )
         return network
 
     @staticmethod
@@ -25,37 +25,37 @@ class Ofertie():
         print >> sys.stderr, "Creating Mininet shell for "+topo
         topofile = os.path.normpath(os.path.join( basepath, 'ofertie-topos.py' ))
         p = pexpect.spawn( 'mn --custom %s --topo %s --mac --switch user --controller remote' % ( topofile, topo ) )
-        p.expect( Ofertie.prompt )
-        print >> sys.stderr, "Sleeping for " + str(Ofertie.startup_sleep) + " seconds to allow the OpenFlow controller to learn the network"
-        sleep(Ofertie.startup_sleep)
+        p.expect( Oftutils.prompt )
+        print >> sys.stderr, "Sleeping for " + str(Oftutils.startup_sleep) + " seconds to allow the OpenFlow controller to learn the network"
+        sleep(Oftutils.startup_sleep)
         return p
 
     @staticmethod
     def expectline( p, command ):
         p.sendline( command )
-        p.expect( [pexpect.TIMEOUT, Ofertie.prompt], timeout=60 )
+        p.expect( [pexpect.TIMEOUT, Oftutils.prompt], timeout=60 )
 	return p.before.split( '\n' )
 
     @staticmethod
     def configureNetwork( p, topo, basepath ):
         print >> sys.stderr, "Setting up "+topo+" network topology"
-	json_data = open(os.path.normpath(os.path.join( basepath, 'ifconfig', topo + ".json" )))
+	json_data = open(os.path.normpath(os.path.join( basepath, 'config', 'ifconfig', topo + ".json" )))
         commands = json.load(json_data)
 	for cmd in commands:
 	    command =  cmd['host'] + " ifconfig " + cmd['interface'] + " " + cmd['action'] + " " + cmd['address_netmask'] + " up"
-	    Ofertie.expectline( p, command)
+	    Oftutils.expectline( p, command)
 	init_file = os.path.normpath(os.path.join( basepath, 'dpctl', topo, 'init.json' ))
 	if os.path.isfile(init_file):
 	    json_data = open( init_file )
             ofcommands = json.load(json_data)
             for ofcommand in ofcommands:
-                Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
+                Oftutils.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
 
     @staticmethod
     def getMultipleIfconfigs( p, switch, interfaces ):
         results = ""
         for interface in interfaces:
-            Ofertie.expectline( p, switch + ' ifconfig ' + interface )
+            Oftutils.expectline( p, switch + ' ifconfig ' + interface )
 	    regex = re.compile( r"(^.*(inet|Ethernet).*$)", re.MULTILINE )
             ifconflines = regex.findall ( p.before )
             for line in ifconflines:
@@ -67,7 +67,7 @@ class Ofertie():
     def getMultipleIfconfigIOs( p, switch, interfaces ):
         results = ""
         for interface in interfaces:
-            Ofertie.expectline( p, switch + ' ifconfig ' + interface )
+            Oftutils.expectline( p, switch + ' ifconfig ' + interface )
             regex = re.compile('RX bytes.*')
             bytes_in_out = regex.findall( p.before )
             results += interface + ": " + bytes_in_out[ 0 ] + "\n"
@@ -76,16 +76,16 @@ class Ofertie():
 
     @staticmethod
     def doPing( p, source, dest, args='', count=10 ):
-      return Ofertie.doPingGeneric( p, 'ping', source, dest, count, args )
+      return Oftutils.doPingGeneric( p, 'ping', source, dest, count, args )
 
     @staticmethod
     def doPing6( p, source, dest, args='', count=10 ):
-      return Ofertie.doPingGeneric( p, 'ping6', source, dest, count, args )
+      return Oftutils.doPingGeneric( p, 'ping6', source, dest, count, args )
 
     @staticmethod
     def doPingGeneric( p, ping_type, source, dest, count, args='' ):
         command = source + " " + ping_type + " -c " + str(count) + " " + args + " " + dest
-        lines = Ofertie.expectline( p, command )
+        lines = Oftutils.expectline( p, command )
         results = Ping()
         if len(lines) < 4:
           return results
@@ -113,7 +113,7 @@ class Ofertie():
       command = switch + " dpctl unix:/tmp/" + switch + " " + command_type + " cmd=" + action + "," + args
       print >> sys.stderr, "COMMAND: " + command 
       p.sendline( command )
-      p.expect( Ofertie.prompt )
+      p.expect( Oftutils.prompt )
 #      print >> sys.stderr, p.before
 
     @staticmethod
@@ -121,9 +121,9 @@ class Ofertie():
       command = switch + " dpctl unix:/tmp/" + switch + " " + ofcommand + " " + args
       command = command.strip()
       print >> sys.stderr, "COMMAND: " + command
-    # lines = Ofertie.expectline( p, command )
+    # lines = Oftutils.expectline( p, command )
       p.sendline( command )
-      p.expect( Ofertie.prompt )
+      p.expect( Oftutils.prompt )
     #  print >> sys.stderr, p.before
     
     @staticmethod
@@ -135,34 +135,35 @@ class Ofertie():
     
     @staticmethod 
     def doIperf3( p, host, connect_to, args="", time=10, port=5001 ):
-      directory = os.path.join( os.path.sep, "tmp", "ofertie",  "iperf" )
+      directory = os.path.join( os.path.sep, "tmp", "ofsoftswitch13-testing",  "iperf" )
       if not os.path.exists(directory):
         os.makedirs(directory)
-      filename = Ofertie.getNewTempFile( directory )
+	os.chown(directory,1001,1001)
+      filename = Oftutils.getNewTempFile( directory )
       command = host + " iperf3 -i 0 -J -c " + connect_to + " -p " + str(port) + " -t " + str(time) + " " + args + " | tail -n +2 | sed '/^\[/d' > " + filename
-      lines = Ofertie.expectline( p, command )
+      lines = Oftutils.expectline( p, command )
       return filename
 
     @staticmethod
     def doIperf3Debug( p, host, connect_to, args="", port=5001 ):
       command = host + " iperf3 -i 0 -t 10 -J -c " + connect_to + " -p " + str(port) + " " + args
       command = command.strip()
-      lines = Ofertie.expectline( p, command )
+      lines = Oftutils.expectline( p, command )
       for line in lines:
         print line
       
     @staticmethod
-    def doIperf3Server( p, host,args="", port=5001 ):
-      print >> sys.stderr, "Starting iperf3 server on ROIA provider"
+    def doIperf3Server( p, host, args="", port=5001 ):
+      print >> sys.stderr, "Starting iperf3 server on host "+ host
       command = host + " iperf3 -sD -p " + str(port) + " " + args
       command = command.strip()
-      lines = Ofertie.expectline( p, command )
-      return Ofertie.getPid( p, host, "iperf3 -sD -p " + str(port) )
+      lines = Oftutils.expectline( p, command )
+      return Oftutils.getPid( p, host, "iperf3 -sD -p " + str(port) )
 
     @staticmethod
     def killProcess( p, host, pid ):
       command = host + " kill -9 " + pid
-      Ofertie.expectline( p, command )
+      Oftutils.expectline( p, command )
 
     @staticmethod
     def getIperf3Results( filename, udp = 0, result_types = ["bandwidth", "throughput", "cpu_usage"] ):
@@ -236,9 +237,9 @@ class Ofertie():
 	results['cpu_usage']['host_total'] = 0
         results['cpu_usage']['remote_total'] = 0 
       if output_type == "human":
-         Ofertie.printResultsHumanReadable(test, results, output_destination)
+         Oftutils.printResultsHumanReadable(test, results, output_destination)
       else:
-         Ofertie.printResultsMachineReadable(test, results, output_destination)
+         Oftutils.printResultsMachineReadable(test, results, output_destination)
 
     @staticmethod
     def printResultsHumanReadable(test, results, output_destination):
@@ -272,12 +273,12 @@ class Ofertie():
           test['udp'] = 1
         else:
           test['udp'] = 0
-        filename = Ofertie.doIperf3(p, test['host'], test['destination'], test['arguments'])
-	results = Ofertie.getIperf3Results(filename, test['udp'])
+        filename = Oftutils.doIperf3(p, test['host'], test['destination'], test['arguments'])
+	results = Oftutils.getIperf3Results(filename, test['udp'])
 	if results['error'] != "":
 		print >> sys.stderr, "WARNING: No iperf data generated.  This may be intentional for this particular test or it may be an error."
 	
-	Ofertie.printResults(tester.output_type, output_destination, test['name'], test['udp'], results) 
+	Oftutils.printResults(tester.output_type, output_destination, test['name'], test['udp'], results) 
 
     @staticmethod
     def runTestSets(p, tests, ofcommands_list, tester, results_directory = "/tmp/"):
@@ -287,26 +288,26 @@ class Ofertie():
         output_destination = open(results_directory + "/" + uuid.uuid4().hex + ".csv" , 'w')
       else:
         output_destination = tester.output_destination
-      Ofertie.runTestSet( p, tests, tester, output_destination )
+      Oftutils.runTestSet( p, tests, tester, output_destination )
       last_ofcommands = {}
       for ofcommands in ofcommands_list:
         if len(last_ofcommands) > 0 and len(last_ofcommands['commands']) > 0:
           print >> sys.stderr, "Removing OpenFlow commands for: " + last_ofcommands['name']
           for ofcommand in last_ofcommands['commands']:
-            Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'del', ofcommand['arguments'])
+            Oftutils.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'del', ofcommand['arguments'])
         print >> sys.stderr, "Applying OpenFlow commands for: " + ofcommands['name']
         for ofcommand in ofcommands['commands']:
-          Ofertie.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
-        sleep(Ofertie.rule_change_sleep)
-        print >> sys.stderr, "Sleeping for " + str(Ofertie.rule_change_sleep) + " seconds to ensure OpenFlow commands have been applied."
-        Ofertie.runTestSet( p, tests, tester, output_destination, ofcommands['name'] )
+          Oftutils.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
+        print >> sys.stderr, "Sleeping for " + str(Oftutils.rule_change_sleep) + " seconds to ensure OpenFlow commands have been applied."
+	sleep(Oftutils.rule_change_sleep)
+        Oftutils.runTestSet( p, tests, tester, output_destination, ofcommands['name'] )
         last_ofcommands = ofcommands
   
  
     @staticmethod
     def getPid( p, host, cmdline ):
       command = host + " ps aux | grep \"" + cmdline + "\" | grep -v grep | tail -n 1 | awk 'BEGIN{FS=\"[\t ]+\"}{print $2}'" 
-      lines = Ofertie.expectline( p, command )
+      lines = Oftutils.expectline( p, command )
       return lines[-2]
 
     @staticmethod 

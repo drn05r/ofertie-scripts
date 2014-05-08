@@ -9,7 +9,7 @@ import re
 import json
 import random
 import uuid
-from ofertieutils import Ofertie
+from oftestutils import Oftutils
 from time import sleep
 from mininet.util import quietRun
 
@@ -22,24 +22,24 @@ class BasicIPv6Test3( unittest.TestCase ):
 
     def test3( self ):
         print >> sys.stderr, "Test 3: Testing flow modifications using ip_proto"
-        network = Ofertie.setupNetwork( self.topology, self.basepath )
-        iperf_pid = Ofertie.doIperf3Server( network, 'h2' )
+        network = Oftutils.setupNetwork( self.topology, self.basepath )
+        iperf_pid = Oftutils.doIperf3Server( network, 'h2' )
 
-        test_file = os.path.normpath(os.path.join( self.basepath, 'tests', self.topology, 'test3.json' ))
+        test_file = os.path.normpath(os.path.join( self.basepath, 'config', 'iperf', self.topology, 'test3.json' ))
         json_data = open(test_file)
         tests = json.load(json_data)
         random.shuffle(tests)
 
-        ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'dpctl', self.topology, 'test3.json' ))
+        ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'config', 'dpctl', self.topology, 'test3.json' ))
         json_data = open(ofcommands_file)
         ofcommands_list = json.load(json_data)
 
         results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "test3" ))
 
-        Ofertie.runTestSets( network, tests, ofcommands_list, self, results_folder )
+        Oftutils.runTestSets( network, tests, ofcommands_list, self, results_folder )
 
-        Ofertie.killProcess( network, 'h2', iperf_pid )
-        Ofertie.finished( network )
+        Oftutils.killProcess( network, 'h2', iperf_pid )
+        Oftutils.finished( network )
 
 
 if __name__ == '__main__':
