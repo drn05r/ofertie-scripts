@@ -19,11 +19,12 @@ class BasicIPv6TestX( unittest.TestCase ):
     output_destination = "file"
     topology = "basicIPv6"
     basepath = str(os.path.normpath(rootdir))
+    iperf_type = 'iperf3'
+    iperf_server = 'h2'
 
     def testX( self ):
         print >> sys.stderr, "Test X: A test for X"
         network = Oftutils.setupNetwork( self.topology, self.basepath )
-        iperf_pid = Oftutils.doIperf3Server( network, 'h2' )
 
         test_file = os.path.normpath(os.path.join( self.basepath, 'config', 'iperf', self.topology, 'testX.json' ))
         json_data = open(test_file)
@@ -35,10 +36,8 @@ class BasicIPv6TestX( unittest.TestCase ):
         ofcommands_list = json.load(json_data)
 
         results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "testX" ))
-
         Oftutils.runTestSets( network, tests, ofcommands_list, self, results_folder )
 
-        Oftutils.killProcess( network, 'h2', iperf_pid )
         Oftutils.finished( network )
 
 

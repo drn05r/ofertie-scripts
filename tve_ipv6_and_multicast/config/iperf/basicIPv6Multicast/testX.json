@@ -1,0 +1,16 @@
+[
+	{
+                "name":"IPv4 UDP Multicast",
+                "host":"h1",
+                "destination":"224.0.1.1",
+                "arguments":"-u -T 32 -b 10M",
+		"multicast":"yes"
+        },
+	{
+                "name":"IPv6 UDP Mutlicast",
+                "host":"h1",
+                "destination":"ff1e::4321",
+                "arguments":"-V -u -T 32 -b 10M",
+		"multicast":"yes"
+        }
+]
