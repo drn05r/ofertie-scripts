@@ -1,0 +1,12 @@
+[
+	{
+		"host":"h1",
+		"interface":"h1-eth1",
+                "vlan":"123"
+	},
+	{
+                "host":"h2",
+                "interface":"h2-eth1",
+                "vlan":"123"
+        }
+]

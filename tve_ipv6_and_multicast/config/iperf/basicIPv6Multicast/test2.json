@@ -1,0 +1,44 @@
+[
+	{
+                "name":"IPv4 UDP Multicast 10M",
+                "host":"h1",
+                "destination":"224.0.1.1",
+                "arguments":"-u -T 32 -b 10M",
+		"multicast":"yes"
+        },
+	{
+                "name":"IPv6 UDP Multicast 10M",
+                "host":"h1",
+                "destination":"ff1e::4321",
+                "arguments":"-V -u -T 32 -b 10M",
+		"multicast":"yes"
+        },
+	{
+                "name":"IPv4 UDP Multicast 20M",
+                "host":"h1",
+                "destination":"224.0.1.1",
+                "arguments":"-u -T 32 -b 20M",
+                "multicast":"yes"
+        },
+        {
+                "name":"IPv6 UDP Multicast 20M",
+                "host":"h1",
+                "destination":"ff1e::4321",
+                "arguments":"-V -u -T 32 -b 20M",
+                "multicast":"yes"
+        },
+	{
+                "name":"IPv4 UDP Multicast 50M",
+                "host":"h1",
+                "destination":"224.0.1.1",
+                "arguments":"-u -T 32 -b 50M",
+                "multicast":"yes"
+        },
+        {
+                "name":"IPv6 UDP Multicast 50M",
+                "host":"h1",
+                "destination":"ff1e::4321",
+                "arguments":"-V -u -T 32 -b 50M",
+                "multicast":"yes"
+        }
+]

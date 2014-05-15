@@ -84,6 +84,6 @@ for ((i=1; i<=$3; i++)); do
 	kill_nox_core
 	kill_switch_processes
         if [ $i -ne $3 ]; then	
-                sleep 5
+                sleep 20
         fi
 done

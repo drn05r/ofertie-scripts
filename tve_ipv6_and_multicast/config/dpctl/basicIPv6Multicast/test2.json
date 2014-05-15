@@ -1,0 +1,13 @@
+[
+	{
+                "name":"Misdirect IPv6 Multicast",
+                "commands":
+                [
+                        {
+                                "switch":"s2",
+                                "command_type":"flow-mod",
+                                "arguments":"table=0 in_port=1,ipv6_dst=ff1e::4321 apply:output=1"
+                        }
+                ]
+        }
+]	

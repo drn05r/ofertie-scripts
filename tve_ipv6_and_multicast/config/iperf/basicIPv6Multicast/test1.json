@@ -1,0 +1,44 @@
+[
+	{
+                "name":"IPv4 UDP Unicast 10M",
+                "host":"h1",
+                "destination":"10.0.0.2 10.0.0.3 10.0.0.4",
+                "arguments":"-u -T 32 -b 10M",
+		"multicast":"no"
+        },
+	{
+                "name":"IPv6 UDP Unicast 10M",
+                "host":"h1",
+                "destination":"fd10:0:0::2 fd10:0:0::3 fd10:0:0::4",
+                "arguments":"-V -u -T 32 -b 10M",
+		"multicast":"no"
+        },
+	{
+                "name":"IPv4 UDP Unicast 20M",
+                "host":"h1",
+                "destination":"10.0.0.2 10.0.0.3 10.0.0.4",
+                "arguments":"-u -T 32 -b 20M",
+                "multicast":"no"
+        },
+        {
+                "name":"IPv6 UDP Unicast 20M",
+                "host":"h1",
+                "destination":"fd10:0:0::2 fd10:0:0::3 fd10:0:0::4",
+                "arguments":"-V -u -T 32 -b 20M",
+                "multicast":"no"
+        },
+	{
+                "name":"IPv4 UDP Unicast 50M",
+                "host":"h1",
+                "destination":"10.0.0.2 10.0.0.3 10.0.0.4",
+                "arguments":"-u -T 32 -b 50M",
+                "multicast":"no"
+        },
+        {
+                "name":"IPv6 UDP Unicast 50M",
+                "host":"h1",
+                "destination":"fd10:0:0::2 fd10:0:0::3 fd10:0:0::4",
+                "arguments":"-V -u -T 32 -b 50M",
+                "multicast":"no"
+        }
+]

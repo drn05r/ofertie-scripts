@@ -9,36 +9,36 @@ import re
 import json
 import random
 import uuid
-from ofertieutils import Ofertie
+from oftestutils import Oftutils
 from time import sleep
 from mininet.util import quietRun
 
-class ComplexIPv6TestX( unittest.TestCase ):
+class BasicIPv6Test6( unittest.TestCase ):
 
-    test_name = "testX"
+    test_name = "test6"
     output_type = "machine"
     output_destination = "file"
-    topology = "complexIPv6"
+    topology = "basicIPv6"
     basepath = str(os.path.normpath(rootdir))
-    iperf_type="iperf"
-    iperf_server = "h1 h3"
+    iperf_type = 'iperf3'
+    iperf_server = 'h2'
 
-    def testX( self ):
-        print >> sys.stderr, "Test X: A test for X"
-	network = Oftutils.setupNetwork( self.topology, self.basepath )
+    def test6( self ):
+        print >> sys.stderr, "Test 6: Test traffic with a vlan tag"
+        network = Oftutils.setupNetwork( self.topology, self.basepath )
 
-        test_file = os.path.normpath(os.path.join( self.basepath, 'config', 'iperf', self.topology, 'testX.json' ))
+        test_file = os.path.normpath(os.path.join( self.basepath, 'config', 'iperf', self.topology, 'test6.json' ))
         json_data = open(test_file)
         tests = json.load(json_data)
         random.shuffle(tests)
 
-        ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'config', 'dpctl', self.topology, 'testX.json' ))
+        ofcommands_file = os.path.normpath(os.path.join( self.basepath, 'config', 'dpctl', self.topology, 'test6.json' ))
         json_data = open(ofcommands_file)
         ofcommands_list = json.load(json_data)
 
-        results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "testX" ))
-
+        results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "test6" ))
         Oftutils.runTestSets( network, tests, ofcommands_list, self, results_folder )
+
         Oftutils.finished( network )
 
 

@@ -1,0 +1,13 @@
+[
+	{
+                "name":"Misdirect IPv6 Multicast",
+                "commands":
+                [
+                        {
+                                "switch":"s2",
+                                "command_type":"flow-mod",
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd apply:output=1"
+                        }
+                ]
+        }
+]	

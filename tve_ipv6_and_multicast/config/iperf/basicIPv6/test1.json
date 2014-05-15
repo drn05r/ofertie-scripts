@@ -12,7 +12,7 @@
                 "arguments":"-6"
         },
 	{
-                "name":"IPv4 UDPr",
+                "name":"IPv4 UDP",
                 "host":"h1",
                 "destination":"10.0.0.2",
                 "arguments":"-4 -u -b 10M"
