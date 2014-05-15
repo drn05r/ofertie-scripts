@@ -383,7 +383,7 @@ class Oftutils():
             stream = jsondata['end']['sum']
           else:
             stream = jsondata['end']['sum_received']
-        pprint.pprint(stream)
+        #pprint.pprint(stream)
         if 'lost_percent' in stream:
           #print >> sys.stderr, "8 * "+str(stream['bytes'])+" * ( 100 - "+str(stream['lost_percent'])+" ) / ( "+str(stream['end'])+" - "+str(stream['start'])+" ) / 100 / 1000000"
           results['bandwidth'] = 8 * stream['bytes'] * ( 100 - stream['lost_percent'] ) / ( stream['end'] - stream['start'] ) / 100 / 1000000

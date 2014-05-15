@@ -10,5 +10,17 @@
                 "host":"h1",
                 "destination":"fd10:0:0::2",
                 "arguments":"-6 -L 23"
+        },
+	{
+                "name":"IPv6 UDP",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -u -b 10M"
+        },
+        {
+                "name":"IPv6 UDP (flow label 23)",
+                "host":"h1",
+                "destination":"fd10:0:0::2",
+                "arguments":"-6 -u -b 10M -L 23"
         }
 ]

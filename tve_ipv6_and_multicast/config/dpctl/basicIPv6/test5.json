@@ -6,7 +6,7 @@
  			{ 	
 				"switch":"s1", 
 				"command_type":"meter-mod", 
-				"arguments":"flags=1,meter=1 drop:rate=500" 
+				"arguments":"flags=1,meter=1 drop:rate=5000" 
 			},
 			{ 	
 				"switch":"s1",
