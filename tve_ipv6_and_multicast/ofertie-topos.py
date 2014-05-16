@@ -162,5 +162,26 @@ class OfertieTest( Topo ):
         self.addLink( secondSwitch, secondHost, 2, 1 )
 
 
-topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'complexLoopIPv6': ( lambda: ComplexLoopIPv6() ), 'twoRoutes': ( lambda: TwoRoutes() ), 'ofertieTest': ( lambda: OfertieTest() ) }
+class AlixBoard( Topo ):
+    "ALIX Board Test"
+ 
+    def __init__( self ):
+        "Creating two routes topology (2 hosts, 2 switches)"
+        
+        Topo.__init__( self )	
+
+        # Add hosts and switches
+        firstHost = self.addHost( 'h1' )
+        secondHost = self.addHost( 'h2' )
+        thirdHost = self.addHost( 'h3' )
+
+        firstSwitch = self.addSwitch( 's1' )
+        
+        self.addLink( firstHost, firstSwitch, 1, 1 )
+        self.addLink( secondHost, firstSwitch, 1, 2 )
+        self.addLink( thirdHost, firstSwitch, 1, 3 )
+
+
+
+topos = { 'basicIPv6': ( lambda: BasicIPv6() ), 'basicIPv6Multicast': ( lambda: BasicIPv6Multicast() ), 'complexIPv6': ( lambda: ComplexIPv6() ), 'complexLoopIPv6': ( lambda: ComplexLoopIPv6() ), 'twoRoutes': ( lambda: TwoRoutes() ), 'ofertieTest': ( lambda: OfertieTest() ), 'alixBoard': ( lambda: AlixBoard() ) }
 
