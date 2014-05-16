@@ -4,6 +4,7 @@ import sys
 import csv
 import pprint
 import string
+import re
 
 basepath = str(os.path.normpath(os.path.dirname(os.path.realpath( __file__ ))))
 topology = sys.argv[1]
@@ -35,7 +36,7 @@ for results_file in results_files:
         n = 0
         while n < len(rows):
             if len(rows[n]) == 1:
-                subset_name = rows[n][0].replace(" ", "_")
+		subset_name = re.sub(r"[\W]", "_", rows[n][0])
                 if subset_name not in results:
                     results[subset_name] = {}
 		    for (field, field_name) in field_maps.iteritems():
@@ -43,7 +44,7 @@ for results_file in results_files:
                 n = n + 1
             
             while n < len(rows) and len(rows[n]) > 1:
-                subtest_name = rows[n][0].replace(" ", "_")
+                subtest_name = re.sub(r"[\W]", "_", rows[n][0])
 	        for f in range(0, len(field_maps)): 
                     if subtest_name not in results[subset_name][fields[f]]:
                         results[subset_name][fields[f]][subtest_name] = {'values':[]}
@@ -73,7 +74,7 @@ for (r, result) in results.items():
         for (s, subtest) in field.items():
             bp_colours_arr.append(colours[subtest_num%len(colours)])
 	    subtest_ids_arr.append(s)
-            subtest_names_arr.append(s.replace("_", " "))
+            subtest_names_arr.append(re.sub(r"[\W]", "_", s))
 	    subtest_num = subtest_num + 1
 	    if max(subtest['values']) > max_value:
                 max_value = max(subtest['values'])
