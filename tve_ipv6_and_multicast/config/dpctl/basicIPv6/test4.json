@@ -30,26 +30,5 @@
                                 "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_dscp=8 meter:1 apply:output=2"
                         }
                 ]
-        },
-	{
-                "name":"Rate Limit on IPv4 and IPv6 with DSCP 8",
-                "commands":
-                [
-                        {
-                                "switch":"s1",
-                                "command_type":"meter-mod",
-                                "arguments":"flags=1,meter=1 drop:rate=5000"
-                        },
-			{
-			        "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_dscp=8 meter:1 apply:output=2"
-                        },
-                        {
-                                "switch":"s1",
-                                "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_dscp=8 meter:1 apply:output=2"
-                        }
-                ]
         }
 ]	

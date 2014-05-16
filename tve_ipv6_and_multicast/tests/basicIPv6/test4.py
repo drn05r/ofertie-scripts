@@ -23,7 +23,7 @@ class BasicIPv6Test4( unittest.TestCase ):
     iperf_type = 'iperf3'
     iperf_server = 'h2'
 
-    def testX( self ):
+    def test4( self ):
         print >> sys.stderr, "Test 4: Testing flow modifications for nw_tos"
         network = Oftutils.setupNetwork( self.topology, self.basepath )
 
@@ -37,6 +37,7 @@ class BasicIPv6Test4( unittest.TestCase ):
         ofcommands_list = json.load(json_data)
 
         results_folder = os.path.normpath(os.path.join( self.basepath, 'results', self.topology, "test4" ))
+        sleep(30)
         Oftutils.runTestSets( network, tests, ofcommands_list, self, results_folder )
 
         Oftutils.finished( network )

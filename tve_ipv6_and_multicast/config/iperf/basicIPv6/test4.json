@@ -6,10 +6,10 @@
 		"arguments":"-4"
 	},
 	{
-                "name":"IPv4 TCP (TOS 8)",
+                "name":"IPv4 TCP (TOS 32)",
                 "host":"h1",
                 "destination":"10.0.0.2",
-                "arguments":"-4 --tos 8"
+                "arguments":"-4 --tos 32"
         },
 	{
                 "name":"IPv6 TCP",
@@ -18,9 +18,9 @@
                 "arguments":"-6"
         },
         {
-                "name":"IPv6 TCP (TOS 65)",
+                "name":"IPv6 TCP (TOS 32)",
                 "host":"h1",
                 "destination":"fd10:0:0::2",
-                "arguments":"-6 --tos 65"
+                "arguments":"-6 --tos 32"
         }
 ]
