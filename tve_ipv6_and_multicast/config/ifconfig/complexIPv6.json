@@ -45,42 +45,42 @@
 		"host":"h1",
 		"interface":"h1-eth1",
 		"action":"add",
-		"address_netmask":"fd10:0:1::1/48"
+		"address_netmask":"fd10:0:0::1/48"
 	},
 	{
                 "host":"h1",
                 "interface":"h1-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:2::1/48"
+                "address_netmask":"fd10:0:0::4/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth1",
                 "action":"add",
-                "address_netmask":"fd10:0:1::2/48"
+                "address_netmask":"fd10:0:0::2/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:2::2/48"
+                "address_netmask":"fd10:0:0::5/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth3",
                 "action":"add",
-                "address_netmask":"fd10:0:3::2/48"
+                "address_netmask":"fd10:0:0::6/48"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth1",
                 "action":"add",
-                "address_netmask":"fd10:0:2::3/48"
+                "address_netmask":"fd10:0:0::3/48"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:3::3/48"
+                "address_netmask":"fd10:0:0::7/48"
         }
 ]
