@@ -15,7 +15,7 @@ from mininet.util import quietRun
 
 class ComplexIPv6Test2( unittest.TestCase ):
 
-    test_name = "test1"
+    test_name = "test2"
     output_type = "machine"
     output_destination = "file"
     topology = "complexIPv6"
