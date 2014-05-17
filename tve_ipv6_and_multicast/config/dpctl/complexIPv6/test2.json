@@ -11,7 +11,7 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_src=fd10:0:0::1/48 meter:1 apply:output=4"
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_src=fd10:0:2::1/48 meter:1 apply:output=4"
                         }
                 ]
         },
@@ -27,7 +27,7 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:0::2/48 meter:1 apply:output=4"
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:2::2/48 meter:1 apply:output=4"
                         }
                 ]
         }
