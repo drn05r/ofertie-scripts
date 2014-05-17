@@ -13,12 +13,12 @@ from oftestutils import Oftutils
 from time import sleep
 from mininet.util import quietRun
 
-class BasicIPv6Test5( unittest.TestCase ):
+class complexIPv6Test5( unittest.TestCase ):
 
     test_name = "test5"
     output_type = "machine"
     output_destination = "file"
-    topology = "basicIPv6"
+    topology = "complexIPv6"
     basepath = str(os.path.normpath(rootdir))
     iperf_type = 'iperf3'
     iperf_server = 'h2'

@@ -3,84 +3,168 @@
                 "host":"h1",
                 "interface":"h1-eth1",
                 "action":"",
-                "address_netmask":"10.0.0.1 netmask 255.255.255.0"
+                "address_netmask":"10.0.1.1 netmask 255.255.255.0"
         },
 	{
                 "host":"h1",
                 "interface":"h1-eth2",
                 "action":"",
-                "address_netmask":"10.0.0.4 netmask 255.255.255.0"
+                "address_netmask":"10.0.2.1 netmask 255.255.255.0"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth1",
                 "action":"",
-                "address_netmask":"10.0.0.2 netmask 255.255.255.0"
+                "address_netmask":"10.0.1.2 netmask 255.255.255.0"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth2",
                 "action":"",
-                "address_netmask":"10.0.0.5 netmask 255.255.255.0"
+                "address_netmask":"10.0.2.2 netmask 255.255.255.0"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth3",
                 "action":"",
-                "address_netmask":"10.0.0.6 netmask 255.255.255.0"
+                "address_netmask":"10.0.3.2 netmask 255.255.255.0"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth1",
                 "action":"",
-                "address_netmask":"10.0.0.3 netmask 255.255.255.0"
+                "address_netmask":"10.0.2.3 netmask 255.255.255.0"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth2",
                 "action":"",
-                "address_netmask":"10.0.0.7 netmask 255.255.255.0"
+                "address_netmask":"10.0.3.3 netmask 255.255.255.0"
         },
 	{
 		"host":"h1",
 		"interface":"h1-eth1",
 		"action":"add",
-		"address_netmask":"fd10:0:0::1/48"
+		"address_netmask":"fd10:0:1::1/48"
 	},
 	{
                 "host":"h1",
                 "interface":"h1-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:0::4/48"
+                "address_netmask":"fd10:0:2::1/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth1",
                 "action":"add",
-                "address_netmask":"fd10:0:0::2/48"
+                "address_netmask":"fd10:0:1::2/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:0::5/48"
+                "address_netmask":"fd10:0:2::2/48"
         },
 	{
                 "host":"h2",
                 "interface":"h2-eth3",
                 "action":"add",
-                "address_netmask":"fd10:0:0::6/48"
+                "address_netmask":"fd10:0:3::2/48"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth1",
                 "action":"add",
-                "address_netmask":"fd10:0:0::3/48"
+                "address_netmask":"fd10:0:2::3/48"
         },
 	{
                 "host":"h3",
                 "interface":"h3-eth2",
                 "action":"add",
-                "address_netmask":"fd10:0:0::7/48"
+                "address_netmask":"fd10:0:3::3/48"
+        },
+	{
+                "host":"h1",
+                "interface":"h1-eth1.123",
+                "action":"",
+                "address_netmask":"10.0.101.1 netmask 255.255.255.0"
+        },
+	{
+                "host":"h1",
+                "interface":"h1-eth2.123",
+                "action":"",
+                "address_netmask":"10.0.102.1 netmask 255.255.255.0"
+        },
+        {
+                "host":"h2",
+                "interface":"h2-eth1.123",
+                "action":"",
+                "address_netmask":"10.0.101.2 netmask 255.255.255.0"
+        },
+	{
+                "host":"h2",
+                "interface":"h2-eth2.123",
+                "action":"",
+                "address_netmask":"10.0.102.2 netmask 255.255.255.0"
+        },
+	{
+                "host":"h2",
+                "interface":"h2-eth3.123",
+                "action":"",
+                "address_netmask":"10.0.103.2 netmask 255.255.255.0"
+        },
+	{
+                "host":"h3",
+                "interface":"h3-eth1.123",
+                "action":"",
+                "address_netmask":"10.0.102.1 netmask 255.255.255.0"
+        },
+	{
+                "host":"h3",
+                "interface":"h3-eth2.123",
+                "action":"",
+                "address_netmask":"10.0.103.3 netmask 255.255.255.0"
+        },
+        {
+                "host":"h1",
+                "interface":"h1-eth1.123",
+                "action":"add",
+                "address_netmask":"fd10:0:101::1/48"
+        },
+	{
+                "host":"h1",
+                "interface":"h1-eth2.123",
+                "action":"add",
+                "address_netmask":"fd10:0:102::1/48"
+        },
+        {
+                "host":"h2",
+                "interface":"h2-eth1.123",
+                "action":"add",
+                "address_netmask":"fd10:0:101::2/48"
+        },
+	{
+                "host":"h2",
+                "interface":"h2-eth2.123",
+                "action":"add",
+                "address_netmask":"fd10:0:102::2/48"
+        },
+	{
+                "host":"h2",
+                "interface":"h2-eth3.123",
+                "action":"add",
+                "address_netmask":"fd10:0:103::2/48"
+        },
+	{
+                "host":"h3",
+                "interface":"h3-eth1.123",
+                "action":"add",
+                "address_netmask":"fd10:0:102::3/48"
+        },
+	{
+                "host":"h3",
+                "interface":"h3-eth2.123",
+                "action":"add",
+                "address_netmask":"fd10:0:103::3/48"
         }
 ]

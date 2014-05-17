@@ -13,7 +13,7 @@ from oftestutils import Oftutils
 from time import sleep
 from mininet.util import quietRun
 
-class BasicIPv6Test3( unittest.TestCase ):
+class ComplexIPv6Test3( unittest.TestCase ):
 
     test_name = "test3"
     output_type = "machine"

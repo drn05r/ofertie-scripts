@@ -1,0 +1,26 @@
+[
+	{
+		"name":"IPv4 TCP",
+		"host":"h1",
+		"destination":"10.0.0.5",
+		"arguments":"-4"
+	},
+	{
+                "name":"IPv4 TCP (TOS 32)",
+                "host":"h1",
+                "destination":"10.0.0.5",
+                "arguments":"-4 --tos 32"
+        },
+	{
+                "name":"IPv6 TCP",
+                "host":"h1",
+                "destination":"fd10:0:0::5",
+                "arguments":"-6"
+        },
+        {
+                "name":"IPv6 TCP (TOS 32)",
+                "host":"h1",
+                "destination":"fd10:0:0::5",
+                "arguments":"-6 --tos 32"
+        }
+]

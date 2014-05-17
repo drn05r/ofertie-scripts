@@ -1,6 +1,6 @@
 [
 	{
-                "name":"Rate Limit on IPv6 Source Address (ROIA player)",
+                "name":"Rate Limit on IPv4 with DSCP 8",
                 "commands":
                 [
                         {
@@ -11,12 +11,12 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_src=fd10:0:0::1/48 meter:1 apply:output=4"
+                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_dscp=8 meter:1 apply:output=4"
                         }
                 ]
         },
 	{
-                "name":"Rate Limit on IPv6 Destination Address (ROIA provider)",
+                "name":"Rate Limit on IPv6 with DSCP 8",
                 "commands":
                 [
                         {
@@ -27,8 +27,8 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=fd10:0:0::2/48 meter:1 apply:output=4"
+                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ip_dscp=8 meter:1 apply:output=4"
                         }
                 ]
         }
-]
+]	

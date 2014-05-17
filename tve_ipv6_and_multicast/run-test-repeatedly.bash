@@ -72,9 +72,9 @@ sudo chown $USER:$USER ${tempdir}/nox_core.*
 for ((i=1; i<=$3; i++)); do
 	kill_nox_core 5
 	kill_switch_processes 5
-        if [ `ps aux | grep iperf3 | grep -v grep | wc -l` -gt 0 ]; then
+        if [ `ps aux | grep iperf | grep -v grep | wc -l` -gt 0 ]; then
 		echo "Killing iperf3 processes that should no longer be running"
-                sudo killall -9 iperf3 &>/dev/null
+                sudo killall -9 iperf3 iperf &>/dev/null
         fi
 	cd  ${nox_core_dir}
         sudo ${nox_core_dir}/nox_core -v -i ptcp:6633 switch 1>> ${tempdir}/nox_core.log 2>> ${tempdir}/nox_core.err &

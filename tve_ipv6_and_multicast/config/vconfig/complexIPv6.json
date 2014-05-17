@@ -1,0 +1,37 @@
+[
+        {
+                "host":"h1",
+                "interface":"h1-eth1",
+                "vlan":"123"
+        },
+	{
+                "host":"h1",
+                "interface":"h1-eth2",
+                "vlan":"123"
+        },
+        {
+                "host":"h2",
+                "interface":"h2-eth1",
+                "vlan":"123"
+        },
+        {
+                "host":"h2",
+                "interface":"h2-eth2",
+                "vlan":"123"
+        },
+	{
+                "host":"h2",
+                "interface":"h2-eth3",
+                "vlan":"123"
+        },
+	{
+                "host":"h3",
+                "interface":"h3-eth1",
+                "vlan":"123"
+        },
+        {
+                "host":"h3",
+                "interface":"h3-eth2",
+                "vlan":"123"
+        }
+]

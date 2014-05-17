@@ -71,7 +71,7 @@ class Oftutils():
             vconfig_commands = json.load(json_vconfig_data)
             for cmd in vconfig_commands:
                 command =  cmd['host'] + " vconfig add " + cmd['interface'] + " " + cmd['vlan']
-                #print >> sys.stderr, command
+                print >> sys.stderr, command
                 Oftutils.expectline( p, command )
 
         # ifconfig commands
@@ -81,7 +81,7 @@ class Oftutils():
             ifconfig_commands = json.load(json_ifconfig_data)
             for cmd in ifconfig_commands:
 	        command =  cmd['host'] + " ifconfig " + cmd['interface'] + " " + cmd['action'] + " " + cmd['address_netmask'] + " up"
-                #print >> sys.stderr, command
+                print >> sys.stderr, command
 	        Oftutils.expectline( p, command )
 
         # route commands
@@ -91,7 +91,7 @@ class Oftutils():
 	    route_commands = json.load(json_route_data)
             for cmd in route_commands:
                 command =  cmd['host'] + " route -A " + cmd['family'] + " " + cmd['action'] + " " + cmd['address'] + " dev " + cmd['interface']
-                #print >> sys.stderr, command
+                print >> sys.stderr, command
                 Oftutils.expectline( p, command )
 
 	# initial dpctl commands
@@ -100,7 +100,13 @@ class Oftutils():
 	    json_data = open( init_file )
             ofcommands = json.load(json_data)
             for ofcommand in ofcommands:
+		print >> sys.stderr, ofcommand
                 Oftutils.applyDpctl(p, ofcommand['switch'], ofcommand['command_type'], 'add', ofcommand['arguments'])
+
+#	Oftutils.expectline(p, "h1 ifconfig")
+#	Oftutils.expectline(p, "h2 ifconfig")
+#	Oftutils.expectline(p, "h1 route -n")
+#	Oftutils.expectline(p, "h2 route -n")
         
     @staticmethod
     def getMultipleIfconfigs( p, switch, interfaces ):
@@ -193,10 +199,11 @@ class Oftutils():
 
     @staticmethod 
     def doIperf3( p, host, connect_to, temp_subdir="", args="", time=10, port=5001 ):
+      print >> sys.stderr, "Starting iperf3 client on "+host+" connecting to "+connect_to+" on port "+str(port)
       directory = Oftutils.getIperfTempDir(temp_subdir)
       filename = Oftutils.getNewTempFile( directory, host+"_client_" )
       command = host + " iperf3 -f m -i 0 -J -c " + connect_to + " -p " + str(port) + " -t " + str(time) + " " + args + " | tail -n +2 | sed '/^\[/d' | sed 's/-nan/0/g' > " + filename
-      #print >> sys.stderr, "IPERF-C: "+command
+      print >> sys.stderr, "IPERF-C: "+command
       lines = Oftutils.expectline( p, command )
       return filename
 
@@ -207,6 +214,15 @@ class Oftutils():
       lines = Oftutils.expectline( p, command )
       for line in lines:
         print line
+
+    @staticmethod
+    def doIperf3Background( p, server, client, connect_to, args="", time=999, port=5101 ):
+      print >> sys.stderr, "Starting iperf3 background server/client on host " + server + " on port " + str(port)
+      server_command = server + " iperf3 -sD -p " + str(port) + " " + args
+      Oftutils.expectline( p, server_command )
+      client_command = client + " iperf3 -i 0 -c " + connect_to + " -p " + str(port) + " -t " + str(time) + " " + args + " 2>&1 > /dev/null &"
+      print >> sys.stderr, "IPERF-BC: "+client_command
+      Oftutils.expectline( p, client_command )
       
     @staticmethod
     def doIperf3Server( p, host, temp_subdir, args="", port=5001 ):
@@ -216,7 +232,7 @@ class Oftutils():
       command = host + " iperf3 -s -J -p " + str(port) + " " + args + " | sed 's/-nan/0/g' > " + filename + " &"
       pid_match = "iperf3 -s -J -p " + str(port)
       command = command.strip()
-      #print >> sys.stderr, "IPERF-S: "+command
+      print >> sys.stderr, "IPERF-S: "+command
       lines = Oftutils.expectline( p, command )
       pid = Oftutils.getPid( p, host, pid_match )
       return { "filename":filename, "pid":pid }
@@ -234,11 +250,19 @@ class Oftutils():
         if dest in dests_map:
           dest_name = dests_map[dest]
         filenames[dest_name] = Oftutils.getNewTempFile( directory, host+"_client_" )
-        command = host + " iperf -f m -i 20 -c " + dest + " -p " + str(port) + " -t " + str(time) + " " + args + " > " + filenames[dest_name] + " &"
+        command = host + " iperf -f m -i 999 -c " + dest + " -p " + str(port) + " -t " + str(time) + " " + args + " > " + filenames[dest_name] + " &"
         #print >> sys.stderr, "IPERF-C: "+command
         lines = Oftutils.expectline( p, command )
       sleep(time+5)
       return filenames
+
+    @staticmethod
+    def doIperfBackground( p, server, client, connect_to, args="", time=999, port=5101 ):
+      print >> sys.stderr, "Starting iperf background server/client on host " + host + " on port " + str(port)
+      server_command = server + " iperf -i 999 -sD -p " + str(port) + " " + args
+      Oftutils.expectline( p, server_command )
+      client_command = client + " iperf -i 999 -c " + connect_to + " -p " + str(port) + " -t " + str(time) + " " + args + " 2>&1 > /dev/null &"
+      Oftutils.expectline( p, client_command )
 
     @staticmethod
     def doIperfServer( p, host, test, temp_subdir, args="", port=5001 ):
@@ -257,7 +281,7 @@ class Oftutils():
       print >> sys.stderr, "Starting iperf server on host " + host + " on " + port_type + " port " + str(port)
       directory = Oftutils.getIperfTempDir(temp_subdir)
       filename = Oftutils.getNewTempFile( directory, host+"_server_" )
-      command = host + " iperf -f m -i 20 "+test['ipv6']+" -s "+test['udp']+" "+test['mcast_grp']+" -p "+str(port)+" "+args+" > "+filename+" &"
+      command = host + " iperf -f m -i 9999 "+test['ipv6']+" -s "+test['udp']+" "+test['mcast_grp']+" -p "+str(port)+" "+args+" > "+filename+" &"
       #print >> sys.stderr, "IPERF-S: "+command
       lines = Oftutils.expectline( p, command )
       pid = Oftutils.getPid( p, host, filename )
@@ -470,6 +494,11 @@ class Oftutils():
       for test in tests:
         temp_subdir = os.path.join(tester.topology, tester.test_name, re.sub(r"[\W]", "_", set_name).lower(), re.sub(r"[\W]", "_", test['name']).lower())
         print >> sys.stderr, "Testing: "+ test['name']
+        if hasattr(tester, 'iperf_bg_server'):
+          if (tester.iperf_type == "iperf"):
+            Oftutils.doIperfBackground(p, tester.iperf_bg_server, tester.iperf_bg_client, tester.iperf_bg_server_ip, tester.iperf_bg_traffic)
+          else:
+            Oftutils.doIperf3Background(p, tester.iperf_bg_server, tester.iperf_bg_client, tester.iperf_bg_server_ip, tester.iperf_bg_traffic)
 	arguments = test['arguments'].split(' ')
         test['ipv6'] = ""
         test['udp'] = ""
