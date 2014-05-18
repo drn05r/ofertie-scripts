@@ -1,28 +1,28 @@
 [
 	{
                 "name":"IPv4 UDP Unicast 10M",
-                "host":"h1",
-                "destination":"10.0.0.3",
+                "host":"h2",
+                "destination":"10.0.2.3",
                 "arguments":"-u -T 32 -b 10M",
                 "multicast":"no"
         },
         {
                 "name":"IPv6 UDP Unicast 10M",
-                "host":"h1",
-                "destination":"fd10:0:0::3",
+                "host":"h2",
+                "destination":"fd10:0:2::3",
                 "arguments":"-V -u -T 32 -b 10M",
                 "multicast":"no"
         },
 	{
                 "name":"IPv4 UDP Multicast 10M",
-                "host":"h1",
+                "host":"h2",
                 "destination":"224.0.1.1",
                 "arguments":"-u -T 32 -b 10M",
 		"multicast":"yes"
         },
 	{
                 "name":"IPv6 UDP Multicast 10M",
-                "host":"h1",
+                "host":"h2",
                 "destination":"ff1e::4321",
                 "arguments":"-V -u -T 32 -b 10M",
 		"multicast":"yes"

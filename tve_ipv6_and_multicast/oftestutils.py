@@ -198,14 +198,27 @@ class Oftutils():
       return directory
 
     @staticmethod 
-    def doIperf3( p, host, connect_to, temp_subdir="", args="", time=10, port=5001 ):
-      print >> sys.stderr, "Starting iperf3 client on "+host+" connecting to "+connect_to+" on port "+str(port)
-      directory = Oftutils.getIperfTempDir(temp_subdir)
-      filename = Oftutils.getNewTempFile( directory, host+"_client_" )
-      command = host + " iperf3 -f m -i 0 -J -c " + connect_to + " -p " + str(port) + " -t " + str(time) + " " + args + " | tail -n +2 | sed '/^\[/d' | sed 's/-nan/0/g' > " + filename
-      print >> sys.stderr, "IPERF-C: "+command
-      lines = Oftutils.expectline( p, command )
-      return filename
+    def doIperf3( p, host, dests_list, dests_map, temp_subdir="", args="", time=10, port=5001 ):
+      filenames = {}
+      dests = dests_list.split(' ')
+      num_dests = len(dests)
+      dest_num = 0
+      for dest in dests:
+        directory = Oftutils.getIperfTempDir(temp_subdir)
+        dest_num = dest_num + 1
+        dest_name = dest
+        if dest in dests_map:
+          dest_name = dests_map[dest]
+        filenames[dest_name] = Oftutils.getNewTempFile( directory, host+"_client_" )
+        print >> sys.stderr, "Starting iperf3 client on "+host+" connecting to "+dest+" on port "+str(port)
+        command = host + " iperf3 -f m -i 0 -J -c " + dest + " -p " + str(port) + " -t " + str(time) + " " + args + " | tail -n +2 | sed '/^\[/d' | sed 's/-nan/0/g' > " + filenames[dest_name] + " &"
+        #print >> sys.stderr, "IPERF-C: "+command
+        lines = Oftutils.expectline( p, command )
+      print >> sys.stderr, "====Procs"
+      procs = Oftutils.expectline( p,  "h1 ps aux | grep iperf3")
+      print >> sys.stderr, "\n".join(procs)
+      sleep(time+5)
+      return filenames
 
     @staticmethod
     def doIperf3Debug( p, host, connect_to, args="", port=5001 ):
@@ -383,69 +396,62 @@ class Oftutils():
       return results      
 
     @staticmethod
-    def getIperf3Results( filename, udp = "", result_types = ["bandwidth", "throughput", "cpu_usage"] ):
-      print >> sys.stderr, "Reading file: "+filename
-      with open(filename, 'r') as filehandle:
-        try:
-          jsondata = json.load(filehandle)
-        except:
-          message = "error - No valid JSON results file generated for this test at " + filename
-          print >> sys.stderr, "Could not open file: "+filename
-          return {'error': message}
-      if 'error' in jsondata:
-        return jsondata
-      results = {'error': ''}
-      if 'bandwidth' in result_types:
-        results['bandwidth'] = 0
+    def getIperf3Results( client_filenames, server_filenames, udp = "", result_types = ["bandwidth", "throughput", "cpu_usage"] ):
+      if udp == '-u':
+        resultset = { 'bandwidth':[], 'throughput':{ 'lost_percent':[], 'jitter':[] }, 'cpu_usage':{ 'host_total':[], 'remote_total':[] } }
+      else:
+        resultset = { 'bandwidth':[], 'throughput':{ 'lost_percent':[], 'restransmits':[] }, 'cpu_usage':{ 'host_total':[], 'remote_total':[] } }
+      for server_name, server_filename in server_filenames.iteritems():
+        with open(server_filename, 'r') as server_fh:
+          print >> sys.stderr, "Scanning iperf3 server file for "+server_name+": "+server_filename
+          try:
+            jsondata = json.load(server_fh)
+          except:
+            message = "error - No valid JSON results file generated for this test at " + server_filename
+            jsondata = {'error':message}
+        if 'error' in jsondata:
+          return jsondata
         if len(jsondata['end']['streams']) < 2:
           if udp == "-u":
             stream = jsondata['end']['streams'][0]['udp']
           else:
             stream = jsondata['end']['streams'][0]['receiver']
+            sent_stream = jsondata['end']['streams'][0]['sender']
         else:
-          if udp == "-u": 
+          if udp == "-u":
             stream = jsondata['end']['sum']
           else:
             stream = jsondata['end']['sum_received']
-        #pprint.pprint(stream)
+            sent_stream = jsondata['end']['sum_sent']
+        if udp == '-u':
+          resultset['throughput']['lost_percent'].append(stream['lost_percent'])
+          resultset['throughput']['jitter'].append(stream['jitter_ms'])
+	else:
+          resultset['throughput']['lost_percent'].append( sent_stream['bytes'] - stream['bytes'] / sent_stream['bytes'] * 100 )
+          
+	  resultset['throughput']['retransmits'].append(sent_stream['retransmits'])
+        bandwidth = 0
         if 'lost_percent' in stream:
-          #print >> sys.stderr, "8 * "+str(stream['bytes'])+" * ( 100 - "+str(stream['lost_percent'])+" ) / ( "+str(stream['end'])+" - "+str(stream['start'])+" ) / 100 / 1000000"
-          results['bandwidth'] = 8 * stream['bytes'] * ( 100 - stream['lost_percent'] ) / ( stream['end'] - stream['start'] ) / 100 / 1000000
+          bandwidth = 8 * stream['bytes'] * ( 100 - stream['lost_percent'] ) / ( stream['end'] - stream['start'] ) / 100 / 1000000
         else:
-          results['bandwidth'] = stream['bits_per_second'] / 1000000
+          bandwidth = stream['bits_per_second'] / 1000000
+        resultset['bandwidth'].append(bandwidth)
+        resultset['cpu_usage']['host_total'].append(jsondata['end']['cpu_utilization_percent']['host_total']) 
+        resultset['cpu_usage']['remote_total'].append(jsondata['end']['cpu_utilization_percent']['remote_total'])
+      results = {'error': ''}
+      if 'bandwidth' in result_types:
+        results['bandwidth'] = sum(resultset['bandwidth'])
       if 'throughput' in result_types:
         results['throughput'] = {}
-        if len(jsondata['end']['streams']) < 2:
-          if udp == "-u":
-            results['throughput']['megabytes'] = jsondata['end']['streams'][0]['udp']['bytes'] / 1000000
-            results['throughput']['packets'] = jsondata['end']['streams'][0]['udp']['packets']
-            results['throughput']['lost_packets'] = jsondata['end']['streams'][0]['udp']['lost_packets']
-            results['throughput']['lost_percent'] = jsondata['end']['streams'][0]['udp']['lost_percent']
-            results['throughput']['jitter'] = jsondata['end']['streams'][0]['udp']['jitter_ms']
-          else:
-            sent_bytes = jsondata['end']['streams'][0]['sender']['bytes']
-            results['throughput']['megabytes'] = jsondata['end']['streams'][0]['sender']['bytes'] / 1000000
-            received_bytes = jsondata['end']['streams'][0]['receiver']['bytes']
-            if 'retransmits' in jsondata['end']['streams'][0]['sender']:
-              results['throughput']['retransmits'] = jsondata['end']['streams'][0]['sender']['retransmits'] 
+        results['throughput']['lost_percent'] =  sum(resultset['throughput']['lost_percent']) / len(resultset['throughput']['lost_percent'])
+        if udp == '-u':
+          results['throughput']['jitter'] = sum(resultset['throughput']['jitter']) / len(resultset['throughput']['jitter'])
         else:
-          if udp == "-u":
-            results['throughput']['megabytes'] = jsondata['end']['sum']['bytes'] / 1000000
-            results['throughput']['packets'] = jsondata['end']['sum']['packets']
-            results['throughput']['lost_packets'] = jsondata['end']['sum']['lost_packets']
-            results['throughput']['lost_percent'] = jsondata['end']['sum']['lost_percent']
-            results['throughput']['jitter'] = jsondata['end']['sum']['jitter_ms']
-          else:
-            sent_bytes = jsondata['end']['sum_sent']['bytes']
-            results['throughput']['megabytes'] = jsondata['end']['sum_sent']['bytes'] / 1000000
-            received_bytes = jsondata['end']['sum_received']['bytes'] / 1000000	
-            if 'retransmits' in jsondata['end']['sum_sent']:
-              results['throughput']['retransmits'] = jsondata['end']['sum_sent']['retransmits']
-        if udp == "":
-          results['throughput']['lost_megabytes'] = ( sent_bytes - received_bytes ) / 1000000
-          results['throughput']['lost_percent'] = ( sent_bytes - received_bytes ) / sent_bytes * 100
+          results['throughput']['retransmits'] = sum(resultset['throughput']['retransmits'])
       if 'cpu_usage' in result_types:
-        results['cpu_usage'] = jsondata['end']['cpu_utilization_percent']
+        results['cpu_usage'] = {}
+        results['cpu_usage']['host_total'] = sum(resultset['cpu_usage']['host_total']) / len(resultset['cpu_usage']['host_total'])
+        results['cpu_usage']['remote_total'] = sum(resultset['cpu_usage']['remote_total']) / len(resultset['cpu_usage']['remote_total'])
       return results
 
     @staticmethod
@@ -520,7 +526,7 @@ class Oftutils():
           client_filenames = Oftutils.doIperf(p, test['host'], test['destination'], ip_host_map, temp_subdir, test['arguments'])
           sleep(5)
           Oftutils.killProcessType( p, iperf_servers[0], tester.iperf_type )
-          sleep(5)
+          sleep(2)
 	  results = Oftutils.getIperfResults(client_filenames, server_filenames, ip_host_map, test['udp'])
         else:
           server_filenames = {}
@@ -529,11 +535,15 @@ class Oftutils():
             iperf_server_info = Oftutils.doIperf3Server( p, iperf_server, temp_subdir )
             iperf_pids[iperf_server] = iperf_server_info['pid']
             server_filenames[iperf_server] = iperf_server_info['filename']
-          filename = Oftutils.doIperf3(p, test['host'], test['destination'], temp_subdir, test['arguments'])
+          client_filenames = Oftutils.doIperf3(p, test['host'], test['destination'], ip_host_map, temp_subdir, test['arguments'])
           sleep(5)
           Oftutils.killProcessType( p, iperf_servers[0], tester.iperf_type )
-          sleep(5)
-	  results = Oftutils.getIperf3Results(server_filenames[iperf_servers[0]], test['udp'])
+          sleep(2)
+          print "====Client Filename"
+          pprint.pprint(client_filenames)
+          print "====Server Filename"
+          pprint.pprint(server_filenames) 
+	  results = Oftutils.getIperf3Results(client_filenames, server_filenames, test['udp'])
 	if results['error'] != "":
 	  print >> sys.stderr, "WARNING: No iperf data generated.  This may be intentional for this particular test or it may be an error."	
 	Oftutils.printResults(tester.output_type, output_destination, test['name'], test['udp'], results) 
@@ -548,6 +558,7 @@ class Oftutils():
         output_destination = open(results_directory + "/" + uuid.uuid4().hex + ".csv" , 'w')
       else:
         output_destination = tester.output_destination
+      sleep(30)
       Oftutils.runTestSet( p, tests, tester, ip_host_map, output_destination )
       last_ofcommands = {}
       for ofcommands in ofcommands_list:
