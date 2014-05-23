@@ -5,6 +5,7 @@ import csv
 import pprint
 import string
 import re
+from collections import OrderedDict
 
 basepath = str(os.path.normpath(os.path.dirname(os.path.realpath( __file__ ))))
 topology = sys.argv[1]
@@ -18,7 +19,7 @@ if len(results_files) == 0:
   print >> sys.stderr, "ERROR: There are no results for topology "+topology+" test "+test_num+"."
   exit(1)
 results = {}
-field_maps = { 'bandwidth':'Bandwidth (Mb/s)', 'packet_loss':'Packet Loss %', 'jitter_retransmits':'Jitter ms / Packet Retransmits', 'local_cpu_load':'Local CPU Load', 'remote_cpu_load':'Remote CPU Load' }
+field_maps = OrderedDict([( 'bandwidth','Bandwidth (Mb/s)'), ('packet_loss','Packet Loss %'), ('jitter_retransmits','Jitter ms / Packet Retransmits'), ('local_cpu_load','Local CPU Load'), ('remote_cpu_load','Remote CPU Load' )])
 fields = field_maps.keys()
 
 graph_dirs = [ "csv", "png", "rscript" ]
@@ -48,8 +49,10 @@ for results_file in results_files:
 	        for f in range(0, len(field_maps)): 
                     if subtest_name not in results[subset_name][fields[f]]:
                         results[subset_name][fields[f]][subtest_name] = {'values':[]}
+                    #print "Append "+rows[n][f+1]+" to results["+subset_name+"]["+fields[f]+"]["+subtest_name+"]['values']"
                     results[subset_name][fields[f]][subtest_name]['values'].append(float(rows[n][f+1]))
                 n = n + 1
+#pprint.pprint(results)
 
 colours = [ 'red', 'blue', 'green', 'yellow', 'purple', 'orange', 'pink', 'brown' ]
 for (r, result) in results.items():
