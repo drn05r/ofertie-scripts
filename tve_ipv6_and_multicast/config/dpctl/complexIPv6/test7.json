@@ -6,7 +6,7 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x86dd,ipv6_dst=ff1e::4321 apply:output=1"
+                                "arguments":"table=0 in_port=4,eth_type=0x86dd,ipv6_dst=ff1e::4321 apply:output=4"
                         }
                 ]
         },
@@ -17,7 +17,7 @@
                         {
                                 "switch":"s2",
                                 "command_type":"flow-mod",
-                                "arguments":"table=0 in_port=1,eth_type=0x800,ip_dst=224.0.1.1 apply:output=1"
+                                "arguments":"table=0 in_port=4,eth_type=0x800,ip_dst=224.0.1.1 apply:output=4"
                         }
                 ]
         }

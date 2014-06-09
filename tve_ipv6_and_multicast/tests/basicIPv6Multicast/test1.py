@@ -20,7 +20,7 @@ class BasicIPv6MulticastTest1( unittest.TestCase ):
     output_destination = "file"
     topology = "basicIPv6Multicast"
     basepath = str(os.path.normpath(rootdir))
-    iperf_type="iperf"
+    iperf_type="iperf3"
     iperf_server = "h2 h3 h4"
 
     def test1( self ):
